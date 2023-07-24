@@ -1,2 +1,1 @@
-from .post import Post  # noqa
-from .user import User  # noqa
+from .models import Dish, Menu, Submenu  # noqa

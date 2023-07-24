@@ -4,9 +4,7 @@ services:
     image: postgres:15.0-alpine
     restart: always
     volumes:
-      - posts_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_PASSWORD=postgres     
+      - menus_data:/var/lib/postgresql/data/  
     env_file:
       - ../../.env
 
@@ -15,8 +13,6 @@ services:
     restart: always
     depends_on: 
       - db 
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/postgres
     env_file:
       - ../../.env
   
@@ -26,9 +22,9 @@ services:
     depends_on:
       - web    
     ports:
-      - "80:80"
+      - "8000:8000"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
 
 volumes:
-  posts_data:
+  menus_data:

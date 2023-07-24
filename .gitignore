@@ -164,3 +164,4 @@ fastapi.db
 test.db
 _main.yml
 _test*
+=GARB=

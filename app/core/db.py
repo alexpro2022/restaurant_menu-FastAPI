@@ -1,6 +1,6 @@
 from typing import AsyncGenerator
 
-from sqlalchemy import Column, Integer, MetaData
+from sqlalchemy import Column, Integer, MetaData, String
 from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
                                     create_async_engine)
 from sqlalchemy.orm import declarative_base, declared_attr
@@ -15,6 +15,8 @@ class PreBase:
         return cls.__name__.lower()
 
     id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(256), unique=True, nullable=False, index=True)
+    description = Column(String(256), nullable=False)
 
 
 metadata = MetaData(naming_convention={

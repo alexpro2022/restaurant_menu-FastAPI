@@ -1,4 +1,4 @@
-DATABASE_URL=sqlite+aiosqlite:///./fastapi.db
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/postgres
+POSTGRES_PASSWORD=postgres
 SECRET_KEY=MY_SECRET_KEY
-ADMIN_EMAIL=adm@adm.com
-ADMIN_PASSWORD=adm
+

@@ -1,2 +1,1 @@
-from .post import PostCreate, PostResponse, PostUpdate  # noqa
-from .user import UserCreate, UserRead, UserUpdate  # noqa
+from .schemas import DishIn, DishOut, MenuIn, MenuOut, SubmenuIn, SubmenuOut  # noqa

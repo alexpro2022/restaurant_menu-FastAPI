@@ -11,7 +11,7 @@ from app.core import Base
 try:
     from app.models import User
 except ImportError:
-    User = None
+    User = Any
 
 ModelType = TypeVar('ModelType', bound=Base)
 CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
@@ -134,13 +134,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         session: AsyncSession,
         payload: CreateSchemaType,
         *,
-        user: User | None = None,
-        perform_create: bool = True,
+        extra_data: Any | None = None,
+        perform_create: bool = False,
     ) -> ModelType:
         """perform_create method is called if perform_create=True."""
         create_data = payload.dict()
         if perform_create:
-            self.perform_create(create_data, user)
+            self.perform_create(create_data, extra_data)
         return await self._save(session, self.model(**create_data))
 
     async def update(
@@ -150,7 +150,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         payload: UpdateSchemaType,
         *,
         user: User | None = None,
-        perform_update: bool = True,
+        perform_update: bool = False,
     ) -> ModelType:
         """perform_update method is called if perform_update=True
            else the object is updated as follows:
