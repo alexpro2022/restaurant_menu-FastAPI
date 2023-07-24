@@ -140,7 +140,7 @@ docker compose -f infra/local/docker-compose.yml down -v
 ## Удаление:
 Из корневой директории проекта выполните команду:
 ```bash
-cd .. && rm -fr social_network-FastAPI && deactivate
+cd .. && rm -fr restaurant_menu-FastAPI
 ```
   
 [⬆️Оглавление](#оглавление)
