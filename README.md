@@ -150,4 +150,4 @@ cd .. && rm -fr restaurant_menu-FastAPI
 ## Автор:
 [Aleksei Proskuriakov](https://github.com/alexpro2022)
 
-[⬆️В начало](#Проект-social_network-FastAPI)
+[⬆️В начало](#Проект-restaurant_menu-FastAPI)
