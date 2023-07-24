@@ -1,11 +1,9 @@
-# Проект social_network-FastAPI: 
+# Проект restaurant_menu-FastAPI: 
 
-[![Test Suite](https://github.com/alexpro2022/social_network-FastAPI/actions/workflows/main.yml/badge.svg)](https://github.com/alexpro2022/social_network-FastAPI/actions/workflows/main.yml)
-[![codecov](https://codecov.io/gh/alexpro2022/social_network-FastAPI/branch/main/graph/badge.svg?token=FfeaO0NLzk)](https://codecov.io/gh/alexpro2022/social_network-FastAPI)
 
-### Simple RESTful API using FastAPI for a social networking application
+### Simple RESTful API using FastAPI for a restaurant menu application
 
-[Тестовое задание](https://docs.google.com/document/d/1_ZMjuXB0DnioQW7w30mrsA2WYzcdbWII4omgPvdPGQo/edit)
+[Тестовое задание](https://ylab.zenclass.ru/student/courses/3befc192-e777-4736-8325-4cd8d28c4f07/tasks/b97560d4-4130-478e-ae3a-b98b2e896a38)
 
 <br>
 
@@ -24,16 +22,17 @@
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue?logo=python)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/-FastAPI-464646?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![Pydantic](https://img.shields.io/badge/-Pydantic-464646?logo=Pydantic)](https://docs.pydantic.dev/)
-[![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
 [![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-464646?logo=PostgreSQL)](https://www.postgresql.org/)
 [![asyncpg](https://img.shields.io/badge/-asyncpg-464646?logo=PostgreSQL)](https://pypi.org/project/asyncpg/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-v2.0-blue?logo=sqlalchemy)](https://www.sqlalchemy.org/)
 [![Alembic](https://img.shields.io/badge/-Alembic-464646?logo=alembic)](https://alembic.sqlalchemy.org/en/latest/)
 [![docker_compose](https://img.shields.io/badge/-Docker%20Compose-464646?logo=docker)](https://docs.docker.com/compose/)
 [![Nginx](https://img.shields.io/badge/-NGINX-464646?logo=NGINX)](https://nginx.org/ru/)
+<!--
+[![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
 [![Pytest](https://img.shields.io/badge/-Pytest-464646?logo=Pytest)](https://docs.pytest.org/en/latest/)
 [![Pytest-asyncio](https://img.shields.io/badge/-Pytest--asyncio-464646?logo=Pytest-asyncio)](https://pypi.org/project/pytest-asyncio/)
-<!--[![docker_hub](https://img.shields.io/badge/-Docker_Hub-464646?logo=docker)](https://hub.docker.com/)-->
+[![docker_hub](https://img.shields.io/badge/-Docker_Hub-464646?logo=docker)](https://hub.docker.com/)-->
 
 [⬆️Оглавление](#оглавление)
 
@@ -43,7 +42,28 @@
 
 ## Описание работы
 
-Swagger позволяет осуществлять http-запросы к работающему сервису, тем самым можно управлять постами в рамках политики сервиса (указано в Swagger для каждого запроса).
+Даны 3 сущности:
+  - Меню, 
+  - Подменю, 
+  - Блюдо.
+
+Зависимости:
+  - У меню есть подменю, которые к нему привязаны.
+  - У подменю есть блюда, которые к нему привязаны.
+
+Условия:
+  - Блюдо не может быть привязано напрямую к меню, минуя подменю.
+  - Блюдо не может находиться в 2-х подменю одновременно.
+  - Подменю не может находиться в 2-х меню одновременно.
+  - Если удалить меню, должны удалиться все подменю и блюда этого меню.
+  - Если удалить подменю, должны удалиться все блюда этого подменю.
+  - Цены блюд выводить с округлением до 2 знаков после запятой.
+  - Во время выдачи списка меню, для каждого меню добавлять кол-во подменю и блюд в этом меню.
+  - Во время выдачи списка подменю, для каждого подменю добавлять кол-во блюд в этом подменю.
+
+Swagger позволяет осуществлять http-запросы к работающему сервису, тем самым можно управлять этими в рамках политики сервиса 
+
+<!--(указано в Swagger для каждого запроса).
 
 Неавторизованные пользователи могут получать доступ либо ко всем постам, либо к конкретному посту. 
 
@@ -64,7 +84,7 @@ Swagger позволяет осуществлять http-запросы к ра�
     В выпадающем списке `Client credentials location` оставьте значение `Authorization header`, 
     остальные два поля оставьте пустыми; нажмите кнопку `Authorize`. 
 Если данные были введены правильно, и таблица в БД существует — появится окно с подтверждением авторизации, нажмите `Close`.
-Чтобы разлогиниться — перезагрузите страницу.
+Чтобы разлогиниться — перезагрузите страницу.-->
 
 [⬆️Оглавление](#оглавление)
 
@@ -74,66 +94,32 @@ Swagger позволяет осуществлять http-запросы к ра�
 
 <details><summary>Предварительные условия</summary>
  
-Предполагается, что пользователь установил [Docker](https://docs.docker.com/engine/install/) и [Docker Compose](https://docs.docker.com/compose/install/) на локальной машине или на удаленном сервере, где проект будет запускаться в контейнерах. Проверить наличие можно выполнив команды:
+Предполагается, что пользователь установил [Docker](https://docs.docker.com/engine/install/) и [Docker Compose](https://docs.docker.com/compose/install/) на локальной машине. Проверить наличие можно выполнив команды:
 
 ```bash
 docker --version && docker-compose --version
 ```
 <h1></h1></details>
 
-<details><summary>Локальный запуск</summary> 
+<!--details><summary>Локальный запуск</summary--> 
+<br>
 
 1. Клонируйте репозиторий с GitHub и введите данные для переменных окружения (значения даны для примера, но их можно оставить):
 
 ```bash
-git clone https://github.com/alexpro2022/social_network-FastAPI.git && \
-cd social_network-FastAPI && \
+git clone https://github.com/alexpro2022/restaurant_menu-FastAPI.git && \
+cd restaurant_menu-FastAPI && \
 cp env_example .env && \
 nano .env
 ```
-
-<details><summary>Uvicorn/SQLite3</summary>
-
-2. Создайте и активируйте виртуальное окружение:
-   * Если у вас Linux/macOS
-   ```bash
-    python -m venv venv && source venv/bin/activate
-   ```
-   * Если у вас Windows
-   ```bash
-    python -m venv venv && source venv/Scripts/activate
-   ```
-
-3. Установите в виртуальное окружение все необходимые зависимости из файла **requirements.txt**:
-```bash
-python -m pip install --upgrade pip && pip install -r requirements.txt
-```
-
-4. В проекте уже инициализирована система миграций Alembic с настроенной автогенерацией имен внешних ключей моделей и создан файл первой миграции. Чтобы ее применить, необходимо выполнить команду:
-```bash
-alembic upgrade head
-```
-Будут созданы все таблицы из файла миграций.
-
-5. Запуск приложения - из корневой директории проекта выполните команду:
-```bash
-uvicorn app.main:app
-```
-Сервер Uvicorn запустит приложение по адресу http://127.0.0.1:8000.
-Администрирование приложения может быть осуществлено через Swagger доступный по адресу http://127.0.0.1:8000/docs .
-
-6. Остановить Uvicorn можно комбинацией клавиш Ctl-C.
-<h1></h1></details>
-
-
-<details><summary>Docker Compose/PostgreSQL</summary> 
 
 2. Из корневой директории проекта выполните команду:
 ```bash
 docker compose -f infra/local/docker-compose.yml up -d --build
 ```
-Проект будет развернут в трех docker-контейнерах (db, web, nginx) по адресу http://localhost.
-Администрирование приложения может быть осуществлено через Swagger доступный по адресу http://localhost/docs .
+Проект будет развернут в трех docker-контейнерах (db, web, nginx) по адресу http://127.0.0.1:8000.
+
+Администрирование приложения может быть осуществлено через Swagger доступный по адресу http://127.0.0.1:8000/docs .
 
 3. Остановить docker и удалить контейнеры можно командой из корневой директории проекта:
 ```bash
@@ -143,27 +129,11 @@ docker compose -f infra/local/docker-compose.yml down
 ```bash
 docker compose -f infra/local/docker-compose.yml down -v
 ```
-<h1></h1></details>
 
-Для создания тестовых постов можно воспользоваться следующими данными:
-
-```json
-{
-  "title": "Yet New post title.",
-  "content": "Yet New post content."
-}
-```
-
-```json
-{
-  "title": "Another New post title.",
-  "content": "Another New post content."
-}
-```
- 
 [⬆️Оглавление](#оглавление)
 
-</details>
+<!--h1></h1></details>
+</details-->
 
 <br>
 
