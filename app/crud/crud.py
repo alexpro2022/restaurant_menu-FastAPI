@@ -14,10 +14,12 @@ class CRUD(CRUDBase):
 
 class MenuCRUD(CRUD):
     NOT_FOUND = 'menu not found'
+    OBJECT_ALREADY_EXISTS = 'Меню с таким заголовком уже существует.'
 
 
 class SubmenuCRUD(CRUD):
     NOT_FOUND = 'submenu not found'
+    OBJECT_ALREADY_EXISTS = 'Подменю с таким заголовком уже существует.'
 
     def perform_create(self, create_data: dict, menu_id: int) -> None:
         create_data['menu_id'] = menu_id
@@ -25,6 +27,7 @@ class SubmenuCRUD(CRUD):
 
 class DishCRUD(CRUD):
     NOT_FOUND = 'dish not found'
+    OBJECT_ALREADY_EXISTS = 'Блюдо с таким заголовком уже существует.'
 
     def perform_create(self, create_data: dict, submenu_id: int) -> None:
         create_data['submenu_id'] = submenu_id
