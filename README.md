@@ -1,5 +1,6 @@
 # Проект restaurant_menu-FastAPI: 
-
+[![Test Suite](https://github.com/alexpro2022/restaurant_menu-FastAPI/actions/workflows/main.yml/badge.svg)](https://github.com/alexpro2022/restaurant_menu-FastAPI/actions/workflows/main.yml)
+[![codecov](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI/branch/main/graph/badge.svg?token=iGgRPVwiiZ)](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI)
 
 ### Simple RESTful API using FastAPI for a restaurant menu application
 
