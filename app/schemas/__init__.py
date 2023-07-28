@@ -1,2 +1,2 @@
-from .schemas import (DishIn, DishOut, MenuIn, MenuOut, SubmenuIn,  # noqa 
-                      SubmenuOut)  # noqa
+from .schemas import SubmenuOut  # noqa
+from .schemas import DishIn, DishOut, MenuIn, MenuOut, SubmenuIn  # noqa
