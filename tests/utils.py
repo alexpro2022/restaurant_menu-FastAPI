@@ -2,17 +2,9 @@ from .fixtures import data as d
 from .fixtures.endpoints_testlib import DONE
 
 
-def _info(obj):
-    assert obj == '', (f'\ntype = {type(obj)}\nvalue = {obj}')
-
-
 def _check_response(response_json: dict, expected_result: dict):
     assert response_json == expected_result
     return DONE
-
-
-def empty_list(response_json: list) -> str:
-    return _check_response(response_json, [])
 
 
 def check_menu(response_json: dict):
