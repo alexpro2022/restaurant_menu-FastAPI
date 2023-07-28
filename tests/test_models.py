@@ -13,7 +13,7 @@ COMMON_FIELDS = ('id', 'title', 'description')
 ))
 def test_model_attr(model, attrs):
     for attr_name in attrs:
-        assert getattr(model, attr_name, None) is not None
+        assert hasattr(model, attr_name)
 
 
 @pytest.mark.parametrize('model, data, attrs', (

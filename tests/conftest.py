@@ -29,6 +29,12 @@ except (NameError, ImportError):
         'Не найден объект `CRUDBase`. Он должен находиться в модуле `app.crud.base`')
 
 try:
+    from app.crud.crud import MenuCRUD  # noqa
+except (NameError, ImportError):
+    raise AssertionError(
+        'Не найден объект `MenuCRUD`. Он должен находиться в модуле `app.crud.crud`')
+
+try:
     from app.models import Menu  # noqa
 except (NameError, ImportError):
     raise AssertionError(
@@ -100,3 +106,8 @@ def submenu(client: TestClient, menu):
 @pytest.fixture
 def dish(client: TestClient, submenu):
     yield client.post(d.ENDPOINT_DISH, json=d.DISH_POST_PAYLOAD)
+
+
+@pytest.fixture
+def get_crud_base() -> MenuCRUD:
+    return MenuCRUD(Menu)
