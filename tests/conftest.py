@@ -1,10 +1,11 @@
 from pathlib import Path
 
-from fastapi.testclient import TestClient
-
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine, AsyncSession
+from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
+
 from .fixtures import data as d
 
 try:
@@ -18,9 +19,7 @@ try:
     from app.core import Base, get_async_session
 except (NameError, ImportError):
     raise AssertionError(
-        'Не обнаружены объекты `Base, get_async_session`. '
-        'Проверьте и поправьте: они должны быть доступны в модуле '
-        '`app.core.db`.')
+        'Не обнаружены объекты `Base, get_async_session`. Они должны находиться в модуле `app.core.db`.')
 
 try:
     from app.crud.base import CRUDBase  # noqa
@@ -51,6 +50,12 @@ try:
 except (NameError, ImportError):
     raise AssertionError(
         'Не найден объект `Dish`. Он должен находиться в модуле `app.models`')
+
+try:
+    from app.schemas import MenuIn, MenuOut  # noqa
+except (NameError, ImportError):
+    raise AssertionError(
+        'Не найдены объекты `MenuIn` и/или `MenuOut`. Они должны находиться в модуле `app.schemas`')
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 

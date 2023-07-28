@@ -1,8 +1,9 @@
 import pytest
 
-from .fixtures import data as d
-from .fixtures.endpoints_testlib import not_allowed_methods_test, standard_tests
 from . import utils as u
+from .fixtures import data as d
+from .fixtures.endpoints_testlib import (not_allowed_methods_test,
+                                         standard_tests)
 
 
 @pytest.mark.parametrize('not_allowed_methods, endpoint', (

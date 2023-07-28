@@ -1,5 +1,5 @@
-from .fixtures.endpoints_testlib import DONE
 from .fixtures import data as d
+from .fixtures.endpoints_testlib import DONE
 
 
 def _info(obj):

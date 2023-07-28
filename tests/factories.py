@@ -1,6 +1,5 @@
 import factory
 from factory.alchemy import SQLAlchemyModelFactory
-
 from sqlalchemy import orm
 
 from .conftest import Dish, Menu, Submenu, TestingSessionLocal

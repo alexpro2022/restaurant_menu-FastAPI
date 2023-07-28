@@ -1,6 +1,6 @@
 import pytest
 
-from .conftest import Menu, Submenu, Dish
+from .conftest import Dish, Menu, Submenu
 from .fixtures import data as d
 
 COMMON_FIELDS = ('id', 'title', 'description')
