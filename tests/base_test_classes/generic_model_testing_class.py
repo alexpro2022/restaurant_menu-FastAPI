@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from .base_testing_class import BaseTestingClass
 
 
-class GenericModelTests(BaseTestingClass):
+class ModelBaseTestClass(BaseTestingClass):
     ordering: tuple[str, ...] | None = None
     verbose_name: str | None = None
     verbose_name_plural: str | None = None

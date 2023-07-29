@@ -13,7 +13,7 @@ class Schema(BaseModel):
     description: str = Field(max_length=100)
 
 
-class TestCrudBaseClass(CrudBaseTestClass):
+class TestCRUDBaseClass(CrudBaseTestClass):
     model = Model
     schema = Schema
     crud_base = CRUDBase(Model)
