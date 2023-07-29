@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import httpx
 import pytest
 import pytest_asyncio
 from fastapi import Response
@@ -97,6 +98,12 @@ async def get_test_session() -> AsyncSession:
 @pytest.fixture
 def client() -> TestClient:
     yield TestClient(app)
+
+
+@pytest_asyncio.fixture
+async def async_client():
+    async with httpx.AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
 
 
 @pytest.fixture

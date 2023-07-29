@@ -11,8 +11,8 @@ from .fixtures.endpoints_testlib import (not_allowed_methods_test,
     (('put',), d.ENDPOINT_MENU),
     (('put',), d.ENDPOINT_SUBMENU),
 ))
-def test_not_allowed_method(not_allowed_methods, endpoint):
-    not_allowed_methods_test(not_allowed_methods, endpoint, path_param=d.ID)
+def test_not_allowed_method(client, not_allowed_methods, endpoint):
+    not_allowed_methods_test(not_allowed_methods, endpoint, client, path_param=d.ID)
 
 
 @pytest.mark.parametrize('fixture, method, endpoint, path_param, payload, msg_already_exists, msg_not_found, check_func', (
@@ -35,10 +35,11 @@ def test_not_allowed_method(not_allowed_methods, endpoint):
     ('dish', 'PATCH', d.ENDPOINT_DISH, d.ID, d.DISH_PATCH_PAYLOAD, *d.DISH_MSG_PACK, u.check_dish_updated),
     ('dish', 'DELETE', d.ENDPOINT_DISH, d.ID, None, *d.DISH_MSG_PACK, u.check_dish_deleted),
 ))
-def test_standard(request, fixture, method, endpoint, path_param, payload, msg_already_exists, msg_not_found, check_func):
+def test_standard(request, client, fixture, method, endpoint, path_param, payload, msg_already_exists, msg_not_found, check_func):
     if fixture is not None:
         request.getfixturevalue(fixture)
-    standard_tests(method, endpoint, 
+    standard_tests(method, endpoint,
+                   _client=client,
                    path_param=path_param,
                    json=payload,
                    msg_already_exists=msg_already_exists,

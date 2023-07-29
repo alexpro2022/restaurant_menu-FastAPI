@@ -6,7 +6,7 @@ from httpx import Response
 
 from tests.conftest import app
 
-client = TestClient(app)
+# client = TestClient(app)
 
 GET, POST, PUT, PATCH, DELETE = 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'
 DONE = 'DONE'
@@ -75,25 +75,11 @@ def create_endpoint(endpoint: str, path_param: PathParam) -> str:
     return f'/{strip_slashes(endpoint)}/'
 
 
-def get_method(client: TestClient, method: str) -> Method:
-    match method.upper():
-        case 'GET':
-            return client.get
-        case 'POST':
-            return client.post
-        case 'PUT':
-            return client.put
-        case 'PATCH':
-            return client.patch
-        case 'DELETE':
-            return client.delete
-
-
 def get_response(
     method: str,
     endpoint: str,
     *,
-    _client: TestClient = client,
+    _client,  # : TestClient = client,
     path_param: int | str | None = None,
     params: dict[str:str] | None = None,
     json: dict[str:str] | None = None,
@@ -101,18 +87,25 @@ def get_response(
     headers: dict | None = None,
 ) -> Response:
     endpoint = create_endpoint(endpoint, path_param)
-    if method.upper() in (PATCH, POST, PUT):
-        return get_method(_client, method)(endpoint, params=params,headers=headers, data=data, json=json)
-    else:
-        return get_method(_client, method)(endpoint, params=params,headers=headers)
-
+    match method.upper():
+        case 'GET':
+            return _client.get(endpoint, params=params,headers=headers)
+        case 'DELETE':
+            return _client.delete(endpoint, params=params,headers=headers)        
+        case 'POST':
+            return _client.post(endpoint, params=params,headers=headers, data=data, json=json)
+        case 'PUT':
+            return _client.put(endpoint, params=params,headers=headers, data=data, json=json)
+        case 'PATCH':
+            return _client.patch(endpoint, params=params,headers=headers, data=data, json=json)
+    
 
 def assert_response(
     expected_status_code: int | None,
     method: str,
     endpoint: str,
     *,
-    _client: TestClient = client,
+    _client,  # : TestClient = client,
     path_param: int | str | None = None,
     params: dict[str:str] | None = None,
     data: dict | None = None,
@@ -143,7 +136,7 @@ def standard_tests(
     method: str,
     endpoint: str,
     *,
-    _client: TestClient = client,
+    _client,  # : TestClient = client,
     path_param: int | str | None = None,
     params: dict[str:str] | None = None,
     params_optional: bool = False,
@@ -200,39 +193,8 @@ def standard_tests(
 def not_allowed_methods_test(
     not_allowed_methods: tuple[str],
     endpoint: str,
+    _client,
     path_param: int | str | None = None,
 ) -> None:
     for method in not_allowed_methods:
-        assert_response(HTTPStatus.METHOD_NOT_ALLOWED, method, endpoint, path_param=path_param)
-
-
-# === AUTHORIZATION ===
-def get_registered(user: dict) -> None:
-    response = client.post('/auth/register', json=user)
-    assert_status(response, HTTPStatus.CREATED)
-    auth_user = response.json()
-    assert isinstance(auth_user['id'], int)
-    assert auth_user['email'] == user['email']
-    assert auth_user['is_active'] == True
-    assert auth_user['is_superuser'] == False
-    assert auth_user['is_verified'] == False
-
-
-def get_auth_user_token(user: dict | None, registration: bool = True) -> str | None:
-    if user is None:
-        return None
-    if registration:
-        get_registered(user)
-    user = user.copy()
-    user['username'] = user['email']
-    response = client.post('/auth/jwt/login', data=user)
-    assert_status(response, HTTPStatus.OK)
-    token = response.json()['access_token']
-    assert isinstance(token, str)
-    return token
-
-
-def get_headers(token: str | None) -> dict[str:str] | None:
-    if token is None:
-        return None
-    return {'Authorization': f'Bearer {token}'}
+        assert_response(HTTPStatus.METHOD_NOT_ALLOWED, method, endpoint, _client=_client, path_param=path_param)
