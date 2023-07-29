@@ -3,3 +3,5 @@
 !alembic.ini
 !alembic
 !app
+!tests
+!setup.cfg
