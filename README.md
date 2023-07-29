@@ -1,4 +1,4 @@
-# Проект restaurant_menu-FastAPI: 
+# Проект Меню ресторана: 
 [![Test Suite](https://github.com/alexpro2022/restaurant_menu-FastAPI/actions/workflows/main.yml/badge.svg)](https://github.com/alexpro2022/restaurant_menu-FastAPI/actions/workflows/main.yml)
 [![codecov](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI/branch/main/graph/badge.svg?token=iGgRPVwiiZ)](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI)
 
@@ -122,7 +122,7 @@ nano .env
 
 ## Запуск тестов:
 
-1. Из корневой директории проекта выполните команду:
+Из корневой директории проекта выполните команду:
 ```bash
 docker build -f test.Dockerfile -t restaurant_menu_tests . && \
 docker run --name tests restaurant_menu_tests && \
@@ -171,4 +171,4 @@ cd .. && rm -fr restaurant_menu-FastAPI
 ## Автор:
 [Aleksei Proskuriakov](https://github.com/alexpro2022)
 
-[⬆️В начало](#Проект-restaurant_menu-FastAPI)
+[⬆️В начало](#Проект-Меню-ресторана)

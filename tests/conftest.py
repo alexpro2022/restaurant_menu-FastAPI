@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 import pytest_asyncio
+from fastapi import Response
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
                                     create_async_engine)
@@ -99,20 +100,15 @@ def client() -> TestClient:
 
 
 @pytest.fixture
-def menu(client: TestClient):
+def menu(client: TestClient) -> Response:
     yield client.post(d.ENDPOINT_MENU, json=d.MENU_POST_PAYLOAD)
 
 
 @pytest.fixture
-def submenu(client: TestClient, menu):
+def submenu(client: TestClient, menu) -> Response:
     yield client.post(d.ENDPOINT_SUBMENU, json=d.SUBMENU_POST_PAYLOAD)
 
 
 @pytest.fixture
-def dish(client: TestClient, submenu):
+def dish(client: TestClient, submenu) -> Response:
     yield client.post(d.ENDPOINT_DISH, json=d.DISH_POST_PAYLOAD)
-
-
-@pytest.fixture
-def get_crud_base() -> MenuCRUD:
-    return MenuCRUD(Menu)

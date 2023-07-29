@@ -1,7 +1,7 @@
 services:
 
   db:
-    image: postgres:15.0-alpine
+    image: postgres:15.1-alpine
     restart: always
     volumes:
       - menus_data:/var/lib/postgresql/data/  
