@@ -60,9 +60,9 @@ except (NameError, ImportError):
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
-SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
-engine = create_async_engine(SQLALCHEMY_DATABASE_URL,
+engine = create_async_engine(TEST_DATABASE_URL,
                              connect_args={"check_same_thread": False})
 
 TestingSessionLocal = async_sessionmaker(expire_on_commit=False,
