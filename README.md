@@ -124,7 +124,10 @@ nano .env
 
 1. Из корневой директории проекта выполните команду:
 ```bash
-docker build -f test.Dockerfile -t restaurant_menu_tests . && docker run --name container restaurant_menu_tests
+docker build -f test.Dockerfile -t restaurant_menu_tests . && \
+docker run --name tests restaurant_menu_tests && \
+docker container rm tests && \
+docker rmi restaurant_menu_tests
 ```
 
 [⬆️Оглавление](#оглавление)
