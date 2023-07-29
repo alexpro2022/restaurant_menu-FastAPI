@@ -2,7 +2,7 @@ from .fixtures import data as d
 from .fixtures.endpoints_testlib import DONE
 
 
-def _check_response(response_json: dict, expected_result: dict):
+def _check_response(response_json: dict, expected_result: dict | list[dict]):
     assert response_json == expected_result
     return DONE
 

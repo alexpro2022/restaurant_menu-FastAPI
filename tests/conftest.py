@@ -59,6 +59,13 @@ except (NameError, ImportError):
     raise AssertionError(
         'Не найдены объекты `MenuIn` и/или `MenuOut`. Они должны находиться в модуле `app.schemas`')
 
+try:
+    from app.crud import menu_crud, submenu_crud, dish_crud  # noqa
+except (NameError, ImportError):
+    raise AssertionError(
+        'Не найдены объекты `menu_crud, submenu_crud, dish_crud`. Они должны находиться в модуле `app.crud`')
+
+
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
@@ -95,27 +102,39 @@ async def get_test_session() -> AsyncSession:
         yield session
 
 
-@pytest.fixture
-def client() -> TestClient:
-    yield TestClient(app)
-
-
 @pytest_asyncio.fixture
 async def async_client():
     async with httpx.AsyncClient(app=app, base_url="http://test") as ac:
         yield ac
 
 
-@pytest.fixture
-def menu(client: TestClient) -> Response:
-    yield client.post(d.ENDPOINT_MENU, json=d.MENU_POST_PAYLOAD)
+@pytest_asyncio.fixture
+async def menu(async_client: httpx.AsyncClient) -> Response:
+    yield await async_client.post(d.ENDPOINT_MENU, json=d.MENU_POST_PAYLOAD)   
 
 
-@pytest.fixture
-def submenu(client: TestClient, menu) -> Response:
-    yield client.post(d.ENDPOINT_SUBMENU, json=d.SUBMENU_POST_PAYLOAD)
+@pytest_asyncio.fixture
+async def submenu(async_client: httpx.AsyncClient, menu) -> Response:
+    assert menu.status_code == 201, (menu.headers, menu.content)
+    yield await async_client.post(d.ENDPOINT_SUBMENU, json=d.SUBMENU_POST_PAYLOAD)
 
 
-@pytest.fixture
-def dish(client: TestClient, submenu) -> Response:
-    yield client.post(d.ENDPOINT_DISH, json=d.DISH_POST_PAYLOAD)
+@pytest_asyncio.fixture
+async def dish(async_client: httpx.AsyncClient, submenu) -> Response:
+    assert submenu.status_code == 201, (submenu.headers, submenu.content)
+    yield await async_client.post(d.ENDPOINT_DISH, json=d.DISH_POST_PAYLOAD)
+
+
+@pytest_asyncio.fixture
+async def get_menu_crud():
+    yield menu_crud
+
+
+@pytest_asyncio.fixture
+async def get_submenu_crud():
+    yield submenu_crud
+
+
+@pytest_asyncio.fixture
+async def get_dish_crud():
+    yield dish_crud

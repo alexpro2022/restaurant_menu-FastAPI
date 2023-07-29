@@ -16,7 +16,7 @@ SUM_DELETE_ITEM = 'Удаление меню'
 
 
 @router.get(
-    '/',
+    '',
     response_model=list[schemas.MenuOut],
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
@@ -26,7 +26,7 @@ async def get_all_(session: AsyncSession = Depends(get_async_session)):
 
 
 @router.post(
-    '/',
+    '',
     status_code=201,
     response_model=schemas.MenuOut,
     summary=SUM_CREATE_ITEM,

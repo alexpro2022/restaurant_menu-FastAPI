@@ -4,6 +4,7 @@ import pytest
 from fastapi import HTTPException
 
 
+@pytest.mark.anyio
 class CrudBaseTestClass:
     model = None
     schema = None
@@ -30,20 +31,20 @@ class CrudBaseTestClass:
         assert isinstance(method, type(instance.__init__))
         return method          
 
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_save(self, get_test_session):
         obj = await self.crud_base._save(get_test_session, self.model(**self.post_payload))
         assert obj
         self._check_obj(obj)
 
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_save_exception(self, get_test_session):
         with pytest.raises(HTTPException) as exc_info:
             [await self.crud_base._save(get_test_session, self.model(**self.post_payload)) for _ in range(2)]
         self._check_exc_info(exc_info, HTTPStatus.BAD_REQUEST, self.msg_already_exists)     
 
     @pytest.mark.parametrize('method_name', ('get_all_by_attr', 'get_by_attr'))
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_not_found_exception(self, get_test_session, method_name):
         method = self._get_method(self.crud_base, method_name)
         args = (get_test_session, 'title', 'invalid_value')
@@ -54,14 +55,14 @@ class CrudBaseTestClass:
         self._check_exc_info_not_found(exc_info)  
 
     @pytest.mark.parametrize('method_name', ('get_all_by_attr', 'get_by_attr'))
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_get_by_(self, get_test_session, method_name):
         method = self._get_method(self.crud_base, method_name)
         await self.crud_base._save(get_test_session, self.model(**self.post_payload))
         result = await method(get_test_session, 'title', self.post_payload['title'])
         self._check_obj(result) if method_name is 'get_by_attr' else self._check_obj(result[0])
 
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_get(self, get_test_session):
         method = self.crud_base.get
         args = (get_test_session, 1)
@@ -71,7 +72,7 @@ class CrudBaseTestClass:
         obj = await method(*args)
         self._check_obj(obj)
 
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_get_or_404(self, get_test_session):
         method = self.crud_base.get_or_404
         args = (get_test_session, 1)
@@ -82,7 +83,7 @@ class CrudBaseTestClass:
         obj = await method(*args)
         self._check_obj(obj)
 
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_get_all(self, get_test_session):
         method = self.crud_base.get_all
         objs = await method(get_test_session)
@@ -107,14 +108,14 @@ class CrudBaseTestClass:
             self._get_method(self.crud_base, method_name)(*args)
         assert exc_info.value.args[0] == expected_msg
 
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_create_raises_not_implemeted_exception(self, get_test_session):
         with pytest.raises(NotImplementedError) as exc_info:
             await self.crud_base.create(get_test_session, self.schema(**self.post_payload), perform_create=True)
         assert exc_info.value.args[0] == 'perform_create() must be implemented.'
 
     @pytest.mark.parametrize('method_name', ('update', 'delete'))
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_update_delete_raises_not_found_exceptions(self, get_test_session, method_name):
         method = self._get_method(self.crud_base, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
@@ -123,7 +124,7 @@ class CrudBaseTestClass:
         self._check_exc_info_not_found(exc_info)
 
     @pytest.mark.parametrize('method_name', ('update', 'delete'))
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_update_delete_raises_has_permission_exceptions(self, get_test_session, method_name):
         method = self._get_method(self.crud_base, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
@@ -136,7 +137,7 @@ class CrudBaseTestClass:
         ('update', 'is_update_allowed() must be implemented.'),
         ('delete', 'is_delete_allowed() must be implemented.'),
     ))
-    @pytest.mark.anyio
+    #@pytest.mark.anyio
     async def test_update_delete_raises_is_allowed_exceptions(self, get_test_session, method_name, expected_msg):
         method = self._get_method(self.crud_base, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
