@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
-from .base_test_classes.base_crud_test_class import CrudBaseTestClass
 from .conftest import Base, CRUDBase
+from .fixtures.base_crud_test_class import CrudBaseTestClass
 
 
 class Model(Base):

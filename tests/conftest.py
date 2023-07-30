@@ -1,10 +1,8 @@
 from pathlib import Path
 
 import httpx
-import pytest
 import pytest_asyncio
 from fastapi import Response
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
                                     create_async_engine)
 
@@ -60,7 +58,7 @@ except (NameError, ImportError):
         'Не найдены объекты `MenuIn` и/или `MenuOut`. Они должны находиться в модуле `app.schemas`')
 
 try:
-    from app.crud import menu_crud, submenu_crud, dish_crud  # noqa
+    from app.crud import dish_crud, menu_crud, submenu_crud  # noqa
 except (NameError, ImportError):
     raise AssertionError(
         'Не найдены объекты `menu_crud, submenu_crud, dish_crud`. Они должны находиться в модуле `app.crud`')
@@ -110,19 +108,24 @@ async def async_client():
 
 @pytest_asyncio.fixture
 async def menu(async_client: httpx.AsyncClient) -> Response:
-    yield await async_client.post(d.ENDPOINT_MENU, json=d.MENU_POST_PAYLOAD)   
+    menu = await async_client.post(d.ENDPOINT_MENU, json=d.MENU_POST_PAYLOAD)
+    assert menu.status_code == 201, (menu.headers, menu.content)
+    yield menu
 
 
 @pytest_asyncio.fixture
 async def submenu(async_client: httpx.AsyncClient, menu) -> Response:
     assert menu.status_code == 201, (menu.headers, menu.content)
-    yield await async_client.post(d.ENDPOINT_SUBMENU, json=d.SUBMENU_POST_PAYLOAD)
-
+    submenu = await async_client.post(d.ENDPOINT_SUBMENU, json=d.SUBMENU_POST_PAYLOAD)
+    assert submenu.status_code == 201, (submenu.headers, submenu.content)
+    yield submenu
 
 @pytest_asyncio.fixture
 async def dish(async_client: httpx.AsyncClient, submenu) -> Response:
     assert submenu.status_code == 201, (submenu.headers, submenu.content)
-    yield await async_client.post(d.ENDPOINT_DISH, json=d.DISH_POST_PAYLOAD)
+    dish = await async_client.post(d.ENDPOINT_DISH, json=d.DISH_POST_PAYLOAD)
+    assert dish.status_code == 201, (dish.headers, dish.content)
+    yield dish
 
 
 @pytest_asyncio.fixture
