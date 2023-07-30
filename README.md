@@ -3,8 +3,30 @@
 [![codecov](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI/branch/main/graph/badge.svg?token=iGgRPVwiiZ)](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI)
 
 ### Simple RESTful API using FastAPI for a restaurant menu application
+#### Добавлены тесты и сценарий тестирования из Postman
 
 [Тестовое задание](https://ylab.zenclass.ru/student/courses/3befc192-e777-4736-8325-4cd8d28c4f07/tasks/b97560d4-4130-478e-ae3a-b98b2e896a38)
+
+<details><summary>ДЗ №1</summary><br>
+  - [x] Написать проект на FastAPI с использованием PostgreSQL в качестве БД. В проекте следует реализовать REST API по работе с меню ресторана, все CRUD операции. 
+</details>
+
+<details><summary>ДЗ №2</summary><br>
+В этом домашнем задании надо написать тесты для ранее разработанных ендпоинтов вашего API после вебинара №1.
+Обернуть программные компоненты в контейнеры. 
+Контейнеры должны запускаться по одной команде “docker-compose up -d” или той которая описана вами в readme.md.
+Образы для Docker:
+  - (API) 	python:3.10-slim
+  - (DB) 	postgres:15.1-alpine
+
+Написать CRUD тесты для ранее разработанного API с помощью библиотеки pytest
+Подготовить отдельный контейнер для запуска тестов. Команду для запуска указать в README.md
+* Реализовать вывод количества подменю  и блюд для Меню через один (сложный) ORM запрос.
+** Реализовать тестовый сценарий «Проверка кол-ва блюд и подменю в меню» из Postman с помощью pytest
+
+Если FastAPI синхронное - тесты синхронные, Если асинхронное - тесты асинхронные
+
+</details>
 
 <br>
 
@@ -29,13 +51,11 @@
 [![asyncpg](https://img.shields.io/badge/-asyncpg-464646?logo=PostgreSQL)](https://pypi.org/project/asyncpg/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-v2.0-blue?logo=sqlalchemy)](https://www.sqlalchemy.org/)
 [![Alembic](https://img.shields.io/badge/-Alembic-464646?logo=alembic)](https://alembic.sqlalchemy.org/en/latest/)
+[![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
 [![docker_compose](https://img.shields.io/badge/-Docker%20Compose-464646?logo=docker)](https://docs.docker.com/compose/)
 [![Nginx](https://img.shields.io/badge/-NGINX-464646?logo=NGINX)](https://nginx.org/ru/)
-<!--
-[![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
 [![Pytest](https://img.shields.io/badge/-Pytest-464646?logo=Pytest)](https://docs.pytest.org/en/latest/)
 [![Pytest-asyncio](https://img.shields.io/badge/-Pytest--asyncio-464646?logo=Pytest-asyncio)](https://pypi.org/project/pytest-asyncio/)
-[![docker_hub](https://img.shields.io/badge/-Docker_Hub-464646?logo=docker)](https://hub.docker.com/)-->
 
 [⬆️Оглавление](#оглавление)
 
@@ -64,7 +84,7 @@
   - Во время выдачи списка меню, для каждого меню добавлять кол-во подменю и блюд в этом меню.
   - Во время выдачи списка подменю, для каждого подменю добавлять кол-во блюд в этом подменю.
 
-Swagger позволяет осуществлять http-запросы к работающему сервису, тем самым можно управлять этими в рамках политики сервиса 
+Swagger позволяет осуществлять http-запросы к работающему сервису, тем самым можно управлять этими сущностями в рамках политики сервиса. 
 
 <!--(указано в Swagger для каждого запроса).
 
