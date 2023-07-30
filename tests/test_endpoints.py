@@ -28,7 +28,7 @@ async def test_menu_post(async_client, get_menu_crud, get_test_session):
 
 @pytest.mark.parametrize('method, path_param, payload, check_func', (
     (GET, None, None, u.check_menu_list),
-    (GET,d.ID, None, u.check_menu),
+    (GET, d.ID, None, u.check_menu),
     (PATCH, d.ID, d.MENU_PATCH_PAYLOAD, u.check_menu_updated),
     (DELETE, d.ID, None, u.check_menu_deleted),
 ))
@@ -57,7 +57,7 @@ async def test_submenu_post(menu, async_client, get_submenu_crud, get_test_sessi
 
 @pytest.mark.parametrize('method, path_param, payload, check_func', (
     (GET, None, None, u.check_submenu_list),
-    (GET,d.ID, None, u.check_submenu),
+    (GET, d.ID, None, u.check_submenu),
     (PATCH, d.ID, d.SUBMENU_PATCH_PAYLOAD, u.check_submenu_updated),
     (DELETE, d.ID, None, u.check_submenu_deleted),
 ))
@@ -86,7 +86,7 @@ async def test_dish_post(submenu, async_client, get_dish_crud, get_test_session)
 
 @pytest.mark.parametrize('method, path_param, payload, check_func', (
     (GET, None, None, u.check_dish_list),
-    (GET,d.ID, None, u.check_dish),
+    (GET, d.ID, None, u.check_dish),
     (PATCH, d.ID, d.DISH_PATCH_PAYLOAD, u.check_dish_updated),
     (DELETE, d.ID, None, u.check_dish_deleted),
 ))
