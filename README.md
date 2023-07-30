@@ -3,25 +3,21 @@
 [![codecov](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI/branch/main/graph/badge.svg?token=iGgRPVwiiZ)](https://codecov.io/gh/alexpro2022/restaurant_menu-FastAPI)
 
 ### Simple RESTful API using FastAPI for a restaurant menu application
-#### Добавлены тесты и сценарий тестирования из Postman
 
 [Тестовое задание](https://ylab.zenclass.ru/student/courses/3befc192-e777-4736-8325-4cd8d28c4f07/tasks/b97560d4-4130-478e-ae3a-b98b2e896a38)
 
 <details><summary>ДЗ №1</summary>
-
-***
+<h1></h1>
 
 ☑ Написать проект на FastAPI с использованием PostgreSQL в качестве БД. 
 
 ☑ В проекте следует реализовать REST API по работе с меню ресторана, все CRUD операции. 
 
-***
-
+<h1></h1>
 </details>
 
 <details><summary>ДЗ №2</summary>
-
-***
+<h1></h1>
 
 ☑ В этом домашнем задании надо написать тесты для ранее разработанных ендпоинтов вашего API после вебинара №1.
 
@@ -41,8 +37,7 @@
 
 ☑ Если FastAPI синхронное - тесты синхронные, Если асинхронное - тесты асинхронные
 
-***
-
+<h1></h1>
 </details>
 
 <br>
