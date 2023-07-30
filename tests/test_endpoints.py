@@ -10,13 +10,10 @@ DELETE, GET, POST, PUT, PATCH = 'DELETE', 'GET', 'POST', 'PUT', 'PATCH'
 pytestmark = pytest.mark.anyio
 
 
-@pytest.mark.parametrize('not_allowed_methods, endpoint', (
-    ((PUT,), d.ENDPOINT_DISH),
-    ((PUT,), d.ENDPOINT_MENU),
-    ((PUT,), d.ENDPOINT_SUBMENU),
-))
-async def test_not_allowed_method(not_allowed_methods, endpoint, async_client):
-    await not_allowed_methods_test(async_client, not_allowed_methods, endpoint)
+@pytest.mark.parametrize(
+    'endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU))
+async def test_not_allowed_method(endpoint, async_client):
+    await not_allowed_methods_test(async_client, (PUT,), endpoint)
 
 
 async def test_menu_post(async_client, get_menu_crud, get_test_session):
