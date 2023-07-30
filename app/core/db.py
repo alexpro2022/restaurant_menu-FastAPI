@@ -19,11 +19,9 @@ class PreBase:
     description = Column(String(256), nullable=False)
 
     def __repr__(self) -> str:
-        return (
-            f'\nid: {self.id},'
-            f'\ntitle: {self.title},'
-            f'\ndescription: {self.description},\n'
-        )
+        return (f'\nid: {self.id},'
+                f'\ntitle: {self.title},'
+                f'\ndescription: {self.description},\n')
 
 
 metadata = MetaData(naming_convention={
