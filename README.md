@@ -194,4 +194,4 @@ cd .. && rm -fr restaurant_menu-FastAPI
 ## Автор:
 [Aleksei Proskuriakov](https://github.com/alexpro2022)
 
-[⬆️В начало](#Проект-Меню-ресторана)
+[⬆️В начало](#проект-меню-ресторана)
