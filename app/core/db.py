@@ -18,6 +18,13 @@ class PreBase:
     title = Column(String(256), unique=True, nullable=False, index=True)
     description = Column(String(256), nullable=False)
 
+    def __repr__(self) -> str:
+        return (
+            f'\nid: {self.id},'
+            f'\ntitle: {self.title},'
+            f'\ndescription: {self.description},\n'
+        )
+
 
 metadata = MetaData(naming_convention={
     "ix": "ix_%(column_0_label)s",

@@ -18,13 +18,6 @@ class Menu(Base):
     def dishes_count(self) -> int:
         return sum([submenu.dishes_count for submenu in self.submenus])
 
-    def __repr__(self) -> str:
-        return (
-            f'\nid: {self.id},'
-            f'\ntitle: {self.title},'
-            f'\ndescription: {self.description},'
-        )
-
 
 class Submenu(Base):
     menu_id = Column(Integer, ForeignKey('menu.id'), nullable=False)
@@ -38,13 +31,6 @@ class Submenu(Base):
     def dishes_count(self) -> int:
         return len(self.dishes)
 
-    def __repr__(self) -> str:
-        return (
-            f'\nid: {self.id},'
-            f'\ntitle: {self.title},'
-            f'\ndescription: {self.description},'
-        )
-
 
 class Dish(Base):
     price = Column(Float, default=0)
@@ -52,9 +38,4 @@ class Dish(Base):
     submenu = orm.relationship('Submenu', back_populates='dishes')
 
     def __repr__(self) -> str:
-        return (
-            f'\nid: {self.id},'
-            f'\ntitle: {self.title},'
-            f'\ndescription: {self.description},'
-            f'\nprice: {self.price}.\n'
-        )
+        return f'{super().__repr__()}price: {self.price}.\n'
