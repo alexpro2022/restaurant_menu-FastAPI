@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Float, ForeignKey, Integer, orm
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from app.core import Base
 
@@ -9,11 +10,13 @@ class Menu(Base):
                                 cascade='all, delete-orphan',
                                 lazy='selectin')
 
-    def get_submenus_count(self) -> int:
+    @hybrid_property
+    def submenus_count(self) -> int:
         return len(self.submenus)
 
-    def get_dishes_count(self) -> int:
-        return sum([submenu.get_dishes_count() for submenu in self.submenus])
+    @hybrid_property
+    def dishes_count(self) -> int:
+        return sum([submenu.dishes_count for submenu in self.submenus])
 
     def __repr__(self) -> str:
         return (
@@ -31,7 +34,8 @@ class Submenu(Base):
                               cascade='all, delete-orphan',
                               lazy='selectin')
 
-    def get_dishes_count(self) -> int:
+    @hybrid_property
+    def dishes_count(self) -> int:
         return len(self.dishes)
 
     def __repr__(self) -> str:

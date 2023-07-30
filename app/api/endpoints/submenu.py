@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, encoders
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models, schemas
@@ -25,7 +25,7 @@ async def get_all_(
     session: AsyncSession = Depends(get_async_session)
 ):
     menu: models.Menu = await menu_crud.get_or_404(session, menu_id)
-    return [get_response(submenu) for submenu in menu.submenus]
+    return menu.submenus
 
 
 @router.post(
@@ -40,9 +40,8 @@ async def create_(
     session: AsyncSession = Depends(get_async_session),
 ):
     menu: models.Menu = await menu_crud.get_or_404(session, menu_id)
-    submenu = await crud.create(
+    return await crud.create(
         session, payload, extra_data=menu.id, perform_create=True)
-    return get_response(submenu)
 
 
 @router.get(
@@ -54,8 +53,7 @@ async def get_(
     item_id: int,
     session: AsyncSession = Depends(get_async_session),
 ):
-    submenu = await crud.get_or_404(session, item_id)
-    return get_response(submenu)
+    return await crud.get_or_404(session, item_id)
 
 
 @router.patch(
@@ -68,8 +66,7 @@ async def update_(
     payload: schemas.SubmenuIn,
     session: AsyncSession = Depends(get_async_session),
 ):
-    submenu = await crud.update(session, item_id, payload)
-    return get_response(submenu)
+    return await crud.update(session, item_id, payload)
 
 
 @router.delete(
@@ -82,8 +79,3 @@ async def delete_(
 ):
     await crud.delete(session, item_id)
     return {"status": True, "message": "The submenu has been deleted"}
-
-
-def get_response(submenu: models.Menu):
-    return schemas.SubmenuOut(**encoders.jsonable_encoder(submenu),
-                              dishes_count=submenu.get_dishes_count())

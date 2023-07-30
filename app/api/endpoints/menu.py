@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, encoders
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app import models, schemas
+from app import schemas
 from app.core import get_async_session, settings
 from app.crud import menu_crud
 
@@ -21,8 +21,7 @@ SUM_DELETE_ITEM = 'Удаление меню'
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
 async def get_all_(session: AsyncSession = Depends(get_async_session)):
-    return [get_response(menu)
-            for menu in await crud.get_all(session)]
+    return await crud.get_all(session)
 
 
 @router.post(
@@ -35,8 +34,7 @@ async def create_(
     payload: schemas.MenuIn,
     session: AsyncSession = Depends(get_async_session),
 ):
-    menu: models.Menu = await crud.create(session, payload)
-    return get_response(menu)
+    return await crud.create(session, payload)
 
 
 @router.get(
@@ -48,8 +46,7 @@ async def get_(
     item_id: int,
     session: AsyncSession = Depends(get_async_session),
 ):
-    menu: models.Menu = await crud.get_or_404(session, item_id)
-    return get_response(menu)
+    return await crud.get_or_404(session, item_id)
 
 
 @router.patch(
@@ -62,8 +59,7 @@ async def update_(
     payload: schemas.MenuIn,
     session: AsyncSession = Depends(get_async_session),
 ):
-    menu: models.Menu = await crud.update(session, item_id, payload)
-    return get_response(menu)
+    return await crud.update(session, item_id, payload)
 
 
 @router.delete(
@@ -76,9 +72,3 @@ async def delete_(
 ):
     await crud.delete(session, item_id)
     return {"status": True, "message": "The menu has been deleted"}
-
-
-def get_response(menu: models.Menu):
-    return schemas.MenuOut(**encoders.jsonable_encoder(menu),
-                           submenus_count=menu.get_submenus_count(),
-                           dishes_count=menu.get_dishes_count())
