@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
 from .conftest import Base, CRUDBase
-from .fixtures.base_crud_test_class import CrudBaseTestClass
+from .fixtures.base_crud_test_class import CrudAbstractTestClass
 
 
 class Model(Base):
@@ -13,7 +13,8 @@ class Schema(BaseModel):
     description: str = Field(max_length=100)
 
 
-class TestCRUDBaseClass(CrudBaseTestClass):
+class TestCRUDBaseClass(CrudAbstractTestClass):
+    """Тестовый класс для тестирования базового CRUD класса."""
     model = Model
     schema = Schema
     crud_base = CRUDBase(Model)

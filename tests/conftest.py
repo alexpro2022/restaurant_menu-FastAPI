@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import httpx
 import pytest_asyncio
 from fastapi import Response
@@ -58,17 +56,12 @@ except (NameError, ImportError):
         'Не найдены объекты `MenuIn` и/или `MenuOut`. Они должны находиться в модуле `app.schemas`')
 
 try:
-    from app.crud import dish_crud, menu_crud, submenu_crud  # noqa
+    from app.crud import dish_crud, menu_crud, submenu_crud
 except (NameError, ImportError):
     raise AssertionError(
         'Не найдены объекты `menu_crud, submenu_crud, dish_crud`. Они должны находиться в модуле `app.crud`')
 
-
-BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
-
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
-
-engine = create_async_engine(TEST_DATABASE_URL,
+engine = create_async_engine("sqlite+aiosqlite:///./test.db",
                              connect_args={"check_same_thread": False})
 
 TestingSessionLocal = async_sessionmaker(expire_on_commit=False,

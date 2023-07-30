@@ -19,6 +19,7 @@ UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+    """Базовый класс для CRUD операций произвольных моделей."""
     OBJECT_ALREADY_EXISTS = 'Object with such a unique values already exists.'
     NOT_FOUND = 'Object(s) not found.'
 

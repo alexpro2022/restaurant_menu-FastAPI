@@ -4,7 +4,8 @@ import pytest
 from fastapi import HTTPException
 
 
-class CrudBaseTestClass:
+class CrudAbstractTestClass:
+    """Абстрактный класс для тестирования базового CRUD класса."""
     model = None
     schema = None
     crud_base = None
