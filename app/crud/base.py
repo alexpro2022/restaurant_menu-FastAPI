@@ -177,8 +177,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         else:
             for key, value in update_data.items():
                 setattr(obj, key, value)
-        updated = await self._save(session, obj)
-        return updated
+        return await self._save(session, obj)
 
     async def delete(
         self,
