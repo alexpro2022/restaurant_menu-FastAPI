@@ -8,7 +8,6 @@ from sqlalchemy.orm import (DeclarativeBase, Mapped, declared_attr,
 
 from app.core import settings
 
-
 md = MetaData(naming_convention={
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
