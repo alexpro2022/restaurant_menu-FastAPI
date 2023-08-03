@@ -160,8 +160,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """perform_update method is called if perform_update=True
            else the object is updated as follows:
             ```py
-            for key in update_data:
-                setattr(obj, key, update_data[key])
+            for key, value in update_data.items():
+                setattr(obj, key, value)
             ```
         """
         obj = await self.get_or_404(session, pk)
@@ -175,9 +175,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if perform_update:
             obj = self.perform_update(obj, update_data)
         else:
-            for key in update_data:
-                setattr(obj, key, update_data[key])
-        return await self._save(session, obj)
+            for key, value in update_data.items():
+                setattr(obj, key, value)
+        updated = await self._save(session, obj)
+        return updated
 
     async def delete(
         self,
