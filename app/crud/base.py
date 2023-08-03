@@ -103,7 +103,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def perform_create(
             self, create_data: dict, extra_data: Any | None = None) -> None:
-        """Modify create_data here if necessary. For instance if extra_data is user:
+        """Modify create_data here if necessary.
+        For instance if extra_data is user:
         ```py
         user = extra_data
         if user is not None:
