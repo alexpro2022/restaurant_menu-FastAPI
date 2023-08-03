@@ -16,14 +16,21 @@ async def test_not_allowed_method(endpoint, async_client):
     await not_allowed_methods_test(async_client, (PUT,), endpoint)
 
 
+@pytest.mark.parametrize('endpoint', (d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU, d.ENDPOINT_DISH))
+async def test_get_all_returns_empty_list(async_client, endpoint):
+    result = await async_client.get(endpoint)
+    assert result.json() == []
+
+
+# MENU ---------------------------------------------------------------------------------------------------------------
 async def test_menu_post(async_client, get_menu_crud, get_test_session):
-    assert await get_menu_crud.get_all(get_test_session) == []
+    assert await get_menu_crud.get_all(get_test_session) is None
     await standard_tests(async_client, POST, d.ENDPOINT_MENU,
                          json=d.MENU_POST_PAYLOAD,
                          msg_already_exists=d.MENU_ALREADY_EXISTS_MSG,
                          msg_not_found=d.MENU_NOT_FOUND_MSG,
                          func_check_valid_response=u.check_menu)
-    assert await get_menu_crud.get_all(get_test_session) != []
+    assert await get_menu_crud.get_all(get_test_session) is not None
 
 
 @pytest.mark.parametrize('method, path_param, payload, check_func', (
@@ -33,26 +40,27 @@ async def test_menu_post(async_client, get_menu_crud, get_test_session):
     (DELETE, d.ID, None, u.check_menu_deleted),
 ))
 async def test_menu_standard(menu, get_menu_crud, get_test_session, async_client, method, path_param, payload, check_func):
-    assert await get_menu_crud.get_all(get_test_session) != []
+    assert await get_menu_crud.get_all(get_test_session) is not None
     await standard_tests(async_client, method, d.ENDPOINT_MENU,
                          path_param=path_param, json=payload,
                          msg_already_exists=d.MENU_ALREADY_EXISTS_MSG,
                          msg_not_found=d.MENU_NOT_FOUND_MSG,
                          func_check_valid_response=check_func)
     if method == DELETE:
-        assert await get_menu_crud.get_all(get_test_session) == []
+        assert await get_menu_crud.get_all(get_test_session) is None
     else:
-        assert await get_menu_crud.get_all(get_test_session) != []
+        assert await get_menu_crud.get_all(get_test_session) is not None
 
 
+# SUBMENU ---------------------------------------------------------------------------------------------------------------
 async def test_submenu_post(menu, async_client, get_submenu_crud, get_test_session,):
-    assert await get_submenu_crud.get_all(get_test_session) == []
+    assert await get_submenu_crud.get_all(get_test_session) is None
     await standard_tests(async_client, POST, d.ENDPOINT_SUBMENU,
                          json=d.SUBMENU_POST_PAYLOAD,
                          msg_already_exists=d.SUBMENU_ALREADY_EXISTS_MSG,
                          msg_not_found=d.SUBMENU_NOT_FOUND_MSG,
                          func_check_valid_response=u.check_submenu)
-    assert await get_submenu_crud.get_all(get_test_session) != []
+    assert await get_submenu_crud.get_all(get_test_session) is not None
 
 
 @pytest.mark.parametrize('method, path_param, payload, check_func', (
@@ -62,26 +70,27 @@ async def test_submenu_post(menu, async_client, get_submenu_crud, get_test_sessi
     (DELETE, d.ID, None, u.check_submenu_deleted),
 ))
 async def test_submenu_standard(submenu, async_client, get_submenu_crud, get_test_session,method, path_param, payload, check_func):
-    assert await get_submenu_crud.get_all(get_test_session) != []
+    assert await get_submenu_crud.get_all(get_test_session) is not None
     await standard_tests(async_client, method, d.ENDPOINT_SUBMENU,
                          path_param=path_param, json=payload,
                          msg_already_exists=d.SUBMENU_ALREADY_EXISTS_MSG,
                          msg_not_found=d.SUBMENU_NOT_FOUND_MSG,
                          func_check_valid_response=check_func)
     if method == DELETE:
-        assert await get_submenu_crud.get_all(get_test_session) == []
+        assert await get_submenu_crud.get_all(get_test_session) is None
     else:
-        assert await get_submenu_crud.get_all(get_test_session) != []    
+        assert await get_submenu_crud.get_all(get_test_session) is not None
 
 
+# DISH ---------------------------------------------------------------------------------------------------------------
 async def test_dish_post(submenu, async_client, get_dish_crud, get_test_session):
-    assert await get_dish_crud.get_all(get_test_session) == []
+    assert await get_dish_crud.get_all(get_test_session) is None
     await standard_tests(async_client, POST, d.ENDPOINT_DISH,
                          json=d.DISH_POST_PAYLOAD,
                          msg_already_exists=d.DISH_ALREADY_EXISTS_MSG,
                          msg_not_found=d.DISH_NOT_FOUND_MSG,
                          func_check_valid_response=u.check_dish)
-    assert await get_dish_crud.get_all(get_test_session) != []
+    assert await get_dish_crud.get_all(get_test_session) is not None
 
 
 @pytest.mark.parametrize('method, path_param, payload, check_func', (
@@ -91,13 +100,13 @@ async def test_dish_post(submenu, async_client, get_dish_crud, get_test_session)
     (DELETE, d.ID, None, u.check_dish_deleted),
 ))
 async def test_dish_standard(dish, async_client, get_dish_crud, get_test_session, method, path_param, payload, check_func):
-    assert await get_dish_crud.get_all(get_test_session) != []
+    assert await get_dish_crud.get_all(get_test_session) is not None
     await standard_tests(async_client, method, d.ENDPOINT_DISH,
                          path_param=path_param, json=payload,
                          msg_already_exists=d.DISH_ALREADY_EXISTS_MSG,
                          msg_not_found=d.DISH_NOT_FOUND_MSG,
                          func_check_valid_response=check_func)
     if method == DELETE:
-        assert await get_dish_crud.get_all(get_test_session) == []
+        assert await get_dish_crud.get_all(get_test_session) is None
     else:
-        assert await get_dish_crud.get_all(get_test_session) != []
+        assert await get_dish_crud.get_all(get_test_session) is not None

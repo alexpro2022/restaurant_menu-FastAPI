@@ -21,7 +21,8 @@ SUM_DELETE_ITEM = 'Удаление меню'
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
 async def get_all_(session: AsyncSession = Depends(get_async_session)):
-    return await crud.get_all(session)
+    menus = await crud.get_all(session)
+    return [] if menus is None else menus
 
 
 @router.post(

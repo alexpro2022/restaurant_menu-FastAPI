@@ -46,15 +46,18 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         exception: bool = False
     ) -> list[ModelType] | None:
         """Raises `NOT_FOUND` exception if
-           no objects are found and `exception=True`."""
+           no objects are found and `exception=True`
+           else returns None else returns list of found objects."""
         if attr_name is not None and attr_value is not None:
             objs = await self.__get_by_attribute(
                 session, attr_name, attr_value)
         else:
             objs = await session.scalars(select(self.model))
         objects = objs.all()
-        if not objects and exception:
-            raise HTTPException(HTTPStatus.NOT_FOUND, self.NOT_FOUND)
+        if not objects:
+            if exception:
+                raise HTTPException(HTTPStatus.NOT_FOUND, self.NOT_FOUND)
+            return None
         return objects
 
     async def get_by_attr(
@@ -85,7 +88,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     async def get_all(
         self, session: AsyncSession, exception: bool = False
-    ) -> list[ModelType]:
+    ) -> list[ModelType] | None:
         return await self.get_all_by_attr(session, exception=exception)
 
 # === Create, Update, Delete ===

@@ -24,8 +24,8 @@ async def get_all_(
     menu_id: int,
     session: AsyncSession = Depends(get_async_session)
 ):
-    menu: models.Menu = await menu_crud.get_or_404(session, menu_id)
-    return menu.submenus
+    menu: models.Menu = await menu_crud.get(session, menu_id)
+    return [] if menu is None else menu.submenus
 
 
 @router.post(

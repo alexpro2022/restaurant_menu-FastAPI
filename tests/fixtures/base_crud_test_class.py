@@ -58,6 +58,14 @@ class CrudAbstractTestClass:
     @pytest.mark.anyio
     async def test_get_by_(self, get_test_session, method_name):
         method = self._get_method(self.crud_base, method_name)
+        # returns None if NOT_FOUND and exception False
+        result = await method(get_test_session, 'title', self.post_payload['title'])
+        assert result is None
+        # raises HTTPException if NOT_FOUND and exception True
+        with pytest.raises(HTTPException) as exc_info:
+            await method(get_test_session, 'title', self.post_payload['title'], exception=True)
+        self._check_exc_info_not_found(exc_info)
+        # returns list of objects or object
         await self.crud_base._save(get_test_session, self.model(**self.post_payload))
         result = await method(get_test_session, 'title', self.post_payload['title'])
         self._check_obj(result) if method_name == 'get_by_attr' else self._check_obj(result[0])
@@ -87,7 +95,7 @@ class CrudAbstractTestClass:
     async def test_get_all(self, get_test_session):
         method = self.crud_base.get_all
         objs = await method(get_test_session)
-        assert objs == []
+        assert objs is None
         with pytest.raises(HTTPException) as exc_info:
             await method(get_test_session, exception=True)
         self._check_exc_info_not_found(exc_info)  
