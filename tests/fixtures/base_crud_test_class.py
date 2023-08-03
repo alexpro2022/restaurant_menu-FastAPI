@@ -60,7 +60,7 @@ class CrudAbstractTestClass:
         method = self._get_method(self.crud_base, method_name)
         await self.crud_base._save(get_test_session, self.model(**self.post_payload))
         result = await method(get_test_session, 'title', self.post_payload['title'])
-        self._check_obj(result) if method_name is 'get_by_attr' else self._check_obj(result[0])
+        self._check_obj(result) if method_name == 'get_by_attr' else self._check_obj(result[0])
 
     @pytest.mark.anyio
     async def test_get(self, get_test_session):
