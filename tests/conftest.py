@@ -1,65 +1,17 @@
 import httpx
 import pytest_asyncio
+from app.core import Base, get_async_session
+from app.crud import dish_crud, menu_crud, submenu_crud
+from app.crud.base import CRUDBase  # noqa
+from app.crud.crud import MenuCRUD  # noqa
+from app.main import app
+from app.models import Dish, Menu, Submenu  # noqa
+from app.schemas import MenuIn, MenuOut  # noqa
 from fastapi import Response
 from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
                                     create_async_engine)
 
 from .fixtures import data as d
-
-try:
-    from app.main import app
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не обнаружен объект приложения `app`.'
-        'Проверьте и поправьте: он должен быть доступен в модуле `app.main`.')
-
-try:
-    from app.core import Base, get_async_session
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не обнаружены объекты `Base, get_async_session`. Они должны находиться в модуле `app.core.db`.')
-
-try:
-    from app.crud.base import CRUDBase  # noqa
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не найден объект `CRUDBase`. Он должен находиться в модуле `app.crud.base`')
-
-try:
-    from app.crud.crud import MenuCRUD  # noqa
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не найден объект `MenuCRUD`. Он должен находиться в модуле `app.crud.crud`')
-
-try:
-    from app.models import Menu  # noqa
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не найден объект `Menu`. Он должен находиться в модуле `app.models`')
-
-try:
-    from app.models import Submenu  # noqa
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не найден объект `Submenu`. Он должен находиться в модуле `app.models`')
-
-try:
-    from app.models import Dish  # noqa
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не найден объект `Dish`. Он должен находиться в модуле `app.models`')
-
-try:
-    from app.schemas import MenuIn, MenuOut  # noqa
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не найдены объекты `MenuIn` и/или `MenuOut`. Они должны находиться в модуле `app.schemas`')
-
-try:
-    from app.crud import dish_crud, menu_crud, submenu_crud
-except (NameError, ImportError):
-    raise AssertionError(
-        'Не найдены объекты `menu_crud, submenu_crud, dish_crud`. Они должны находиться в модуле `app.crud`')
 
 engine = create_async_engine("sqlite+aiosqlite:///./test.db",
                              connect_args={"check_same_thread": False})
