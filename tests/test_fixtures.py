@@ -1,3 +1,5 @@
+import asyncio
+
 from httpx import AsyncClient
 
 from .conftest import CRUDBase
@@ -44,3 +46,7 @@ def test_get_submenu_crud(get_submenu_crud):
 
 def test_get_dish_crud(get_dish_crud):
     assert isinstance(get_dish_crud, CRUDBase)
+
+
+async def test_provided_loop_is_running_loop(event_loop):
+    assert event_loop is asyncio.get_running_loop()

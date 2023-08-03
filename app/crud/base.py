@@ -102,9 +102,10 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         raise NotImplementedError('is_delete_allowed() must be implemented.')
 
     def perform_create(
-            self, create_data: dict, user: User | None = None) -> None:
-        """Modify create_data here if necessary. For instance:
+            self, create_data: dict, extra_data: Any | None = None) -> None:
+        """Modify create_data here if necessary. For instance if extra_data is user:
         ```py
+        user = extra_data
         if user is not None:
            create_data['user_id'] = user.id
         ```
@@ -124,9 +125,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             await session.commit()
         except exc.IntegrityError:
             await session.rollback()
-            raise HTTPException(
-                HTTPStatus.BAD_REQUEST,
-                self.OBJECT_ALREADY_EXISTS)
+            raise HTTPException(HTTPStatus.BAD_REQUEST,
+                                self.OBJECT_ALREADY_EXISTS)
         await session.refresh(obj)
         return obj
 

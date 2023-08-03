@@ -113,6 +113,7 @@ async def submenu(async_client: httpx.AsyncClient, menu) -> Response:
     assert submenu.status_code == 201, (submenu.headers, submenu.content)
     yield submenu
 
+
 @pytest_asyncio.fixture
 async def dish(async_client: httpx.AsyncClient, submenu) -> Response:
     assert submenu.status_code == 201, (submenu.headers, submenu.content)
