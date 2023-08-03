@@ -11,12 +11,16 @@ def check_empty_list(response_json: list):
     return _check_response(response_json, [])
 
 
-def check_menu(response_json: dict):
+def check_created_menu(response_json: dict):
     return _check_response(response_json, d.CREATED_MENU)
 
 
+def check_menu(response_json: list):
+    return _check_response(response_json, d.EXPECTED_MENU)
+
+
 def check_menu_list(response_json: list):
-    return _check_response(response_json, [d.CREATED_MENU])
+    return _check_response(response_json, [d.EXPECTED_MENU])
 
 
 def check_menu_updated(response_json: dict):
@@ -27,12 +31,16 @@ def check_menu_deleted(response_json: dict):
     return _check_response(response_json, d.DELETED_MENU)
 
 
-def check_submenu(response_json: dict):
+def check_created_submenu(response_json: dict):
     return _check_response(response_json, d.CREATED_SUBMENU)
 
 
+def check_submenu(response_json: list):
+    return _check_response(response_json, d.EXPECTED_SUBMENU)
+
+
 def check_submenu_list(response_json: list):
-    return _check_response(response_json, [d.CREATED_SUBMENU])
+    return _check_response(response_json, [d.EXPECTED_SUBMENU])
 
 
 def check_submenu_updated(response_json: dict):
@@ -57,3 +65,12 @@ def check_dish_updated(response_json: dict):
 
 def check_dish_deleted(response_json: dict):
     return _check_response(response_json, d.DELETED_DISH)
+
+
+def get_crud(endpoint, *, menu_crud, submenu_crud, dish_crud):
+    res = endpoint.split('/')
+    if 'dishes' in res:
+        return dish_crud
+    elif 'submenus' in res:
+        return submenu_crud
+    return menu_crud
