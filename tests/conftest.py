@@ -5,16 +5,15 @@ from fastapi import Response
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core import Base, get_async_session
-from app.crud import dish_crud, menu_crud, submenu_crud
+from app.crud import DishRepository, MenuRepository, SubmenuRepository
 from app.crud.base import CRUDBaseRepository  # noqa
-from app.crud.crud import MenuCRUD  # noqa
 from app.main import app
 from app.models import Dish, Menu, Submenu  # noqa
 from app.schemas import MenuIn, MenuOut  # noqa
 
 from .fixtures import data as d
 
-pytest_mark_anyio = pytest.mark.asyncio
+pytest_mark_anyio = pytest.mark.anyio
 
 engine = create_async_engine('sqlite+aiosqlite:///./test.db',
                              connect_args={'check_same_thread': False})
@@ -78,15 +77,15 @@ async def dish(async_client: httpx.AsyncClient, submenu) -> Response:
 
 
 @pytest_asyncio.fixture
-async def get_menu_crud():
-    yield menu_crud
+async def get_menu_crud(get_test_session):
+    yield MenuRepository(get_test_session)
 
 
 @pytest_asyncio.fixture
-async def get_submenu_crud():
-    yield submenu_crud
+async def get_submenu_crud(get_test_session):
+    yield SubmenuRepository(get_test_session)
 
 
 @pytest_asyncio.fixture
-async def get_dish_crud():
-    yield dish_crud
+async def get_dish_crud(get_test_session):
+    yield DishRepository(get_test_session)

@@ -20,7 +20,7 @@ class TitleDescriptionMixin(BaseModel):
 
 
 class DishIn(TitleDescriptionMixin):
-    price: str = Field(example=PRICE)
+    price: float = Field(default=0, example=PRICE)
 
 
 class DishOut(IdMixin, DishIn):

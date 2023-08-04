@@ -19,55 +19,48 @@ class CRUDBaseRepository(
     OBJECT_ALREADY_EXISTS = 'Object with such a unique values already exists.'
     NOT_FOUND = 'Object(s) not found.'
 
-    def __init__(self, model: type[ModelType]) -> None:
+    def __init__(self, model: type[ModelType], session: AsyncSession) -> None:
         self.model = model
+        self.session = session
 
 # === Read ===
     async def __get_by_attributes(
-        self, session: AsyncSession, *, all: bool = True, **kwargs,
+        self, *, all: bool = True, **kwargs,
     ) -> list[ModelType] | ModelType | None:
         query = (select(self.model).filter_by(**kwargs) if kwargs
                  else select(self.model))
-        result = await session.scalars(query.order_by(self.model.id))
+        result = await self.session.scalars(query.order_by(self.model.id))
         return result.all() if all else result.first()
 
-    async def _get_all_by_attrs(
-        self, session: AsyncSession, *, exception: bool = False, **kwargs,
-    ) -> list[ModelType] | None:
+    async def _get_all_by_attrs(self, *, exception: bool = False, **kwargs
+                                ) -> list[ModelType] | None:
         """Raises `NOT_FOUND` exception if
            no objects are found and `exception=True`
            else returns None else returns list of found objects."""
-        objects = await self.__get_by_attributes(session, **kwargs)
+        objects = await self.__get_by_attributes(**kwargs)
         if not objects:
             if exception:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, self.NOT_FOUND)
             return None
         return objects
 
-    async def _get_by_attrs(
-        self, session: AsyncSession, *, exception: bool = False, **kwargs,
-    ) -> ModelType | None:
+    async def _get_by_attrs(self, *, exception: bool = False, **kwargs
+                            ) -> ModelType | None:
         """Raises `NOT_FOUND` exception if
            no object is found and `exception=True`."""
-        object = await self.__get_by_attributes(session, all=False, **kwargs)
+        object = await self.__get_by_attributes(all=False, **kwargs)
         if object is None and exception:
             raise HTTPException(status.HTTP_404_NOT_FOUND, self.NOT_FOUND)
         return object
 
-    async def get(
-        self, session: AsyncSession, pk: int,
-    ) -> ModelType | None:
-        return await self._get_by_attrs(session, id=pk)
+    async def get(self, pk: int) -> ModelType | None:
+        return await self._get_by_attrs(id=pk)
 
-    async def get_or_404(
-        self, session: AsyncSession, pk: int,
-    ) -> ModelType:
-        return await self._get_by_attrs(session, id=pk, exception=True)
+    async def get_or_404(self, pk: int) -> ModelType:
+        return await self._get_by_attrs(id=pk, exception=True)
 
-    async def get_all(
-        self, session: AsyncSession, exception: bool = False
-    ) -> list[ModelType] | None:
-        return await self._get_all_by_attrs(session, exception=exception)
+    async def get_all(self, exception: bool = False) -> list[ModelType] | None:
+        return await self._get_all_by_attrs(exception=exception)
 
 # === Create, Update, Delete ===
     def has_permission(self, obj: ModelType, user: Any | None) -> None:
@@ -82,8 +75,8 @@ class CRUDBaseRepository(
         """Check for custom conditions and raise exception if not allowed."""
         raise NotImplementedError('is_delete_allowed() must be implemented.')
 
-    def perform_create(
-            self, create_data: dict, extra_data: Any | None = None) -> None:
+    def perform_create(self, create_data: dict, extra_data: Any | None = None
+                       ) -> None:
         """Modify create_data here if necessary.
         For instance if extra_data is user:
         ```py
@@ -98,36 +91,30 @@ class CRUDBaseRepository(
         """Modify update_data here if necessary and return updated object."""
         raise NotImplementedError('perform_update() must be implemented.')
 
-    async def _save(self, session: AsyncSession, obj: ModelType) -> ModelType:
+    async def _save(self, obj: ModelType) -> ModelType:
         """Tries to write object to DB. Raises `BAD_REQUEST` exception
            if object already exists in DB. """
-        session.add(obj)
+        self.session.add(obj)
         try:
-            await session.commit()
+            await self.session.commit()
         except exc.IntegrityError:
-            await session.rollback()
+            await self.session.rollback()
             raise HTTPException(status.HTTP_400_BAD_REQUEST,
                                 self.OBJECT_ALREADY_EXISTS)
-        await session.refresh(obj)
+        await self.session.refresh(obj)
         return obj
 
     async def create(
-        self,
-        session: AsyncSession,
-        payload: CreateSchemaType,
-        *,
-        extra_data: Any | None = None,
-        # perform_create: bool = False,
+        self, payload: CreateSchemaType, *, extra_data: Any | None = None
     ) -> ModelType:
         """perform_create method is called if extra_data is not None."""
         create_data = payload.dict()
         if extra_data is not None:
             self.perform_create(create_data, extra_data)
-        return await self._save(session, self.model(**create_data))
+        return await self._save(self.model(**create_data))
 
     async def update(
         self,
-        session: AsyncSession,
         pk: int,
         payload: UpdateSchemaType,
         *,
@@ -141,7 +128,7 @@ class CRUDBaseRepository(
                 setattr(obj, key, value)
             ```
         """
-        obj = await self.get_or_404(session, pk)
+        obj = await self.get_or_404(pk)
         if user is not None:
             self.has_permission(obj, user)
         update_data = payload.dict(exclude_unset=True,
@@ -153,18 +140,13 @@ class CRUDBaseRepository(
         else:
             for key, value in update_data.items():
                 setattr(obj, key, value)
-        return await self._save(session, obj)
+        return await self._save(obj)
 
-    async def delete(
-        self,
-        session: AsyncSession,
-        pk: int,
-        user: Any | None = None,
-    ) -> ModelType:
-        obj = await self.get_or_404(session, pk)
+    async def delete(self, pk: int, user: Any | None = None) -> ModelType:
+        obj = await self.get_or_404(pk)
         if user is not None:
             self.has_permission(obj, user)
         self.is_delete_allowed(obj)
-        await session.delete(obj)
-        await session.commit()
+        await self.session.delete(obj)
+        await self.session.commit()
         return obj

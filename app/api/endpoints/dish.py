@@ -1,12 +1,15 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models, schemas
-from app.core import get_async_session, settings
-from app.crud import dish_crud, submenu_crud
+from app.core import settings
+from app.crud import DishRepository, SubmenuRepository
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Dishes'])
-crud = dish_crud
+
+dish = Annotated[DishRepository, Depends()]
+submenu = Annotated[SubmenuRepository, Depends()]
 
 SUM_ALL_ITEMS = 'Выдача списка блюд'
 SUM_ITEM = 'Возвращает блюдо по ID'
@@ -20,11 +23,8 @@ SUM_DELETE_ITEM = 'Удаление блюда'
     response_model=list[schemas.DishOut] | list,
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
-async def get_all_(
-    submenu_id: int,
-    session: AsyncSession = Depends(get_async_session)
-):
-    submenu: models.Submenu = await submenu_crud.get(session, submenu_id)
+async def get_all_(submenu_id: int, submenu_crud: submenu):
+    submenu: models.Submenu = await submenu_crud.get(submenu_id)
     return [] if submenu is None else submenu.dishes
 
 
@@ -37,11 +37,11 @@ async def get_all_(
 async def create_(
     submenu_id: int,
     payload: schemas.DishIn,
-    session: AsyncSession = Depends(get_async_session),
+    submenu_crud: submenu,
+    crud: dish,
 ):
-    submenu: models.Submenu = await submenu_crud.get_or_404(session,
-                                                            submenu_id)
-    return await crud.create(session, payload, extra_data=submenu.id)
+    submenu: models.Submenu = await submenu_crud.get_or_404(submenu_id)
+    return await crud.create(payload, extra_data=submenu.id)
 
 
 @router.get(
@@ -49,11 +49,8 @@ async def create_(
     response_model=schemas.DishOut,
     summary=SUM_ITEM,
     description=(f'{settings.ALL_USERS} {SUM_ITEM}'))
-async def get_(
-    item_id: int,
-    session: AsyncSession = Depends(get_async_session),
-):
-    return await crud.get_or_404(session, item_id)
+async def get_(item_id: int, crud: dish):
+    return await crud.get_or_404(item_id)
 
 
 @router.patch(
@@ -61,20 +58,13 @@ async def get_(
     response_model=schemas.DishOut,
     summary=SUM_UPDATE_ITEM,
     description=(f'{settings.AUTH_ONLY} {SUM_UPDATE_ITEM}'))
-async def update_(
-    item_id: int,
-    payload: schemas.DishIn,
-    session: AsyncSession = Depends(get_async_session),
-):
-    return await crud.update(session, item_id, payload)
+async def update_(item_id: int, payload: schemas.DishIn, crud: dish):
+    return await crud.update(item_id, payload)
 
 
 @router.delete(
     '/{menu_id}/submenus/{submenu_id}/dishes/{item_id}',
     summary=SUM_DELETE_ITEM,
     description=(f'{settings.SUPER_ONLY} {SUM_DELETE_ITEM}'))
-async def delete_(
-    item_id: int,
-    session: AsyncSession = Depends(get_async_session),
-):
-    return await crud.delete(session, item_id)
+async def delete_(item_id: int, crud: dish):
+    return await crud.delete(item_id)

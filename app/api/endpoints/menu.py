@@ -1,12 +1,14 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import schemas
-from app.core import get_async_session, settings
-from app.crud import menu_crud
+from app.core import settings
+from app.crud import MenuRepository
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
-crud = menu_crud
+
+menu = Annotated[MenuRepository, Depends()]
 
 SUM_ALL_ITEMS = 'Выдача списка меню'
 SUM_ITEM = 'Возвращает меню по ID'
@@ -20,8 +22,8 @@ SUM_DELETE_ITEM = 'Удаление меню'
     response_model=list[schemas.MenuOut],
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
-async def get_all_(session: AsyncSession = Depends(get_async_session)):
-    return await crud.get_all(session)
+async def get_all_(crud: menu):
+    return await crud.get_all()
 
 
 @router.post(
@@ -30,11 +32,8 @@ async def get_all_(session: AsyncSession = Depends(get_async_session)):
     response_model=schemas.MenuOut,
     summary=SUM_CREATE_ITEM,
     description=(f'{settings.AUTH_ONLY} {SUM_CREATE_ITEM}'))
-async def create_(
-    payload: schemas.MenuIn,
-    session: AsyncSession = Depends(get_async_session),
-):
-    return await crud.create(session, payload)
+async def create_(payload: schemas.MenuIn, crud: menu):
+    return await crud.create(payload)
 
 
 @router.get(
@@ -42,11 +41,8 @@ async def create_(
     response_model=schemas.MenuOut,
     summary=SUM_ITEM,
     description=(f'{settings.ALL_USERS} {SUM_ITEM}'))
-async def get_(
-    item_id: int,
-    session: AsyncSession = Depends(get_async_session),
-):
-    return await crud.get_or_404(session, item_id)
+async def get_(item_id: int, crud: menu):
+    return await crud.get_or_404(item_id)
 
 
 @router.patch(
@@ -54,20 +50,15 @@ async def get_(
     response_model=schemas.MenuOut,
     summary=SUM_UPDATE_ITEM,
     description=(f'{settings.AUTH_ONLY} {SUM_UPDATE_ITEM}'))
-async def update_(
-    item_id: int,
-    payload: schemas.MenuIn,
-    session: AsyncSession = Depends(get_async_session),
-):
-    return await crud.update(session, item_id, payload)
+async def update_(item_id: int,
+                  payload: schemas.MenuIn,
+                  crud: menu):
+    return await crud.update(item_id, payload)
 
 
 @router.delete(
     '/{item_id}',
     summary=SUM_DELETE_ITEM,
     description=(f'{settings.SUPER_ONLY} {SUM_DELETE_ITEM}'))
-async def delete_(
-    item_id: int,
-    session: AsyncSession = Depends(get_async_session),
-):
-    return await crud.delete(session, item_id)
+async def delete_(item_id: int, crud: menu):
+    return await crud.delete(item_id)
