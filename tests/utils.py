@@ -7,10 +7,6 @@ def _check_response(response_json: dict | list, expected_result: dict | list[dic
     return DONE
 
 
-def check_empty_list(response_json: list):
-    return _check_response(response_json, [])
-
-
 def check_created_menu(response_json: dict):
     return _check_response(response_json, d.CREATED_MENU)
 

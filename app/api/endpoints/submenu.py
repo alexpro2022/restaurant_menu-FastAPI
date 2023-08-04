@@ -76,5 +76,4 @@ async def delete_(
     item_id: int,
     session: AsyncSession = Depends(get_async_session),
 ):
-    await crud.delete(session, item_id)
-    return {'status': True, 'message': 'The submenu has been deleted'}
+    return await crud.delete(session, item_id)

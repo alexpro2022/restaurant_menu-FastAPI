@@ -1,3 +1,7 @@
+from typing import Any, Coroutine
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models import Dish, Menu, Submenu
 
 from .base import CRUDBaseRepository
@@ -16,6 +20,18 @@ class MenuCRUD(CRUDRepository):
     NOT_FOUND = 'menu not found'
     OBJECT_ALREADY_EXISTS = 'Меню с таким заголовком уже существует.'
 
+    async def get_all(
+        self, session: AsyncSession, exception: bool = False
+    ) -> Coroutine[Any, Any, list | None]:
+        menus = await super().get_all(session, exception)
+        return [] if menus is None else menus
+
+    async def delete(
+        self, session: AsyncSession, pk: int, user: Any | None = None
+    ) -> Coroutine[Any, Any, dict]:
+        await super().delete(session, pk, user)
+        return {'status': True, 'message': 'The menu has been deleted'}
+
 
 class SubmenuCRUD(CRUDRepository):
     NOT_FOUND = 'submenu not found'
@@ -24,6 +40,12 @@ class SubmenuCRUD(CRUDRepository):
     def perform_create(self, create_data: dict, menu_id: int) -> None:
         create_data['menu_id'] = menu_id
 
+    async def delete(
+        self, session: AsyncSession, pk: int, user: Any | None = None
+    ) -> Coroutine[Any, Any, dict]:
+        await super().delete(session, pk, user)
+        return {'status': True, 'message': 'The submenu has been deleted'}
+
 
 class DishCRUD(CRUDRepository):
     NOT_FOUND = 'dish not found'
@@ -31,6 +53,12 @@ class DishCRUD(CRUDRepository):
 
     def perform_create(self, create_data: dict, submenu_id: int) -> None:
         create_data['submenu_id'] = submenu_id
+
+    async def delete(
+        self, session: AsyncSession, pk: int, user: Any | None = None
+    ) -> Coroutine[Any, Any, dict]:
+        await super().delete(session, pk, user)
+        return {'status': True, 'message': 'The dish has been deleted'}
 
 
 dish_crud = DishCRUD(Dish)

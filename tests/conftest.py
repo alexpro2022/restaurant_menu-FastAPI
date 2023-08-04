@@ -14,7 +14,7 @@ from app.schemas import MenuIn, MenuOut  # noqa
 
 from .fixtures import data as d
 
-pytest_mark_anyio = pytest.mark.anyio
+pytest_mark_anyio = pytest.mark.asyncio
 
 engine = create_async_engine('sqlite+aiosqlite:///./test.db',
                              connect_args={'check_same_thread': False})

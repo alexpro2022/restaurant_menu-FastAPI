@@ -24,12 +24,9 @@ class CRUD(CRUDBaseRepository):
         pass
 
     def perform_create(self, create_data: dict, extra_data: Any | None = None) -> None:
-        if extra_data is not None:
-            create_data['title'] = extra_data
+        create_data['title'] = extra_data
 
     def perform_update(self, obj: Any, update_data: dict) -> Any | None:
-        if obj is None or update_data is None:
-            return None
         update_data['title'] = 'perform_updated_done'
         for key, value in update_data.items():
             setattr(obj, key, value)

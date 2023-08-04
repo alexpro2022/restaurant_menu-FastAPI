@@ -48,19 +48,19 @@ async def test_standard(dish, async_client, get_menu_crud, get_submenu_crud, get
                          func_check_valid_response=check_func)
 
     if method == DELETE:
-        assert await crud.get_all(get_test_session) is None
+        assert not await crud.get_all(get_test_session)
     else:
         assert len(await crud.get_all(get_test_session)) == 1
 
 
 async def test_menu_post(async_client, get_menu_crud, get_test_session):
-    assert await get_menu_crud.get_all(get_test_session) is None
+    assert not await get_menu_crud.get_all(get_test_session)
     await standard_tests(async_client, POST, d.ENDPOINT_MENU,
                          json=d.MENU_POST_PAYLOAD,
                          msg_already_exists=d.MENU_ALREADY_EXISTS_MSG,
                          msg_not_found=d.MENU_NOT_FOUND_MSG,
                          func_check_valid_response=u.check_created_menu)
-    assert await get_menu_crud.get_all(get_test_session) is not None
+    assert await get_menu_crud.get_all(get_test_session)
 
 
 async def test_submenu_post(menu, async_client, get_submenu_crud, get_test_session,):
