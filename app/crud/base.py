@@ -1,24 +1,20 @@
-from http import HTTPStatus
 from typing import Any, Generic, TypeVar
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import exc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import Base
 
-try:
-    from app.models import User  # noqa
-except ImportError:
-    User = Any
-
 ModelType = TypeVar('ModelType', bound=Base)
 CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
 UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
 
 
-class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+class CRUDBaseRepository(
+    Generic[ModelType, CreateSchemaType, UpdateSchemaType]
+):
     """Базовый класс для CRUD операций произвольных моделей."""
     OBJECT_ALREADY_EXISTS = 'Object with such a unique values already exists.'
     NOT_FOUND = 'Object(s) not found.'
@@ -27,72 +23,54 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self.model = model
 
 # === Read ===
-    async def __get_by_attribute(
-        self,
-        session: AsyncSession,
-        attr_name: str,
-        attr_value: Any,
-    ):
-        return await session.scalars(
-            select(self.model).where(
-                getattr(self.model, attr_name) == attr_value
-            ).order_by(self.model.id))
+    async def __get_by_attributes(
+        self, session: AsyncSession, *, all: bool = True, **kwargs,
+    ) -> list[ModelType] | ModelType | None:
+        query = (select(self.model).filter_by(**kwargs) if kwargs
+                 else select(self.model))
+        result = await session.scalars(query.order_by(self.model.id))
+        return result.all() if all else result.first()
 
-    async def get_all_by_attr(
-        self,
-        session: AsyncSession,
-        attr_name: str | None = None,
-        attr_value: Any | None = None,
-        exception: bool = False
+    async def _get_all_by_attrs(
+        self, session: AsyncSession, *, exception: bool = False, **kwargs,
     ) -> list[ModelType] | None:
         """Raises `NOT_FOUND` exception if
            no objects are found and `exception=True`
            else returns None else returns list of found objects."""
-        if attr_name is not None and attr_value is not None:
-            objs = await self.__get_by_attribute(
-                session, attr_name, attr_value)
-        else:
-            objs = await session.scalars(select(self.model))
-        objects = objs.all()
+        objects = await self.__get_by_attributes(session, **kwargs)
         if not objects:
             if exception:
-                raise HTTPException(HTTPStatus.NOT_FOUND, self.NOT_FOUND)
+                raise HTTPException(status.HTTP_404_NOT_FOUND, self.NOT_FOUND)
             return None
         return objects
 
-    async def get_by_attr(
-        self,
-        session: AsyncSession,
-        attr_name: str,
-        attr_value: Any,
-        exception: bool = False
+    async def _get_by_attrs(
+        self, session: AsyncSession, *, exception: bool = False, **kwargs,
     ) -> ModelType | None:
         """Raises `NOT_FOUND` exception if
            no object is found and `exception=True`."""
-        objs = await self.__get_by_attribute(
-            session, attr_name, attr_value)
-        object = objs.first()
+        object = await self.__get_by_attributes(session, all=False, **kwargs)
         if object is None and exception:
-            raise HTTPException(HTTPStatus.NOT_FOUND, self.NOT_FOUND)
+            raise HTTPException(status.HTTP_404_NOT_FOUND, self.NOT_FOUND)
         return object
 
     async def get(
         self, session: AsyncSession, pk: int,
     ) -> ModelType | None:
-        return await self.get_by_attr(session, 'id', pk)
+        return await self._get_by_attrs(session, id=pk)
 
     async def get_or_404(
         self, session: AsyncSession, pk: int,
     ) -> ModelType:
-        return await self.get_by_attr(session, 'id', pk, exception=True)
+        return await self._get_by_attrs(session, id=pk, exception=True)
 
     async def get_all(
         self, session: AsyncSession, exception: bool = False
     ) -> list[ModelType] | None:
-        return await self.get_all_by_attr(session, exception=exception)
+        return await self._get_all_by_attrs(session, exception=exception)
 
 # === Create, Update, Delete ===
-    def has_permission(self, obj: ModelType, user: User | None) -> None:
+    def has_permission(self, obj: ModelType, user: Any | None) -> None:
         """Check for user permission and raise exception if not allowed."""
         raise NotImplementedError('has_permission() must be implemented.')
 
@@ -120,8 +98,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         """Modify update_data here if necessary and return updated object."""
         raise NotImplementedError('perform_update() must be implemented.')
 
-    async def _save(
-            self, session: AsyncSession, obj: ModelType) -> ModelType:
+    async def _save(self, session: AsyncSession, obj: ModelType) -> ModelType:
         """Tries to write object to DB. Raises `BAD_REQUEST` exception
            if object already exists in DB. """
         session.add(obj)
@@ -129,7 +106,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             await session.commit()
         except exc.IntegrityError:
             await session.rollback()
-            raise HTTPException(HTTPStatus.BAD_REQUEST,
+            raise HTTPException(status.HTTP_400_BAD_REQUEST,
                                 self.OBJECT_ALREADY_EXISTS)
         await session.refresh(obj)
         return obj
@@ -140,11 +117,11 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         payload: CreateSchemaType,
         *,
         extra_data: Any | None = None,
-        perform_create: bool = False,
+        # perform_create: bool = False,
     ) -> ModelType:
-        """perform_create method is called if perform_create=True."""
+        """perform_create method is called if extra_data is not None."""
         create_data = payload.dict()
-        if perform_create:
+        if extra_data is not None:
             self.perform_create(create_data, extra_data)
         return await self._save(session, self.model(**create_data))
 
@@ -154,7 +131,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         pk: int,
         payload: UpdateSchemaType,
         *,
-        user: User | None = None,
+        user: Any | None = None,
         perform_update: bool = False,
     ) -> ModelType:
         """perform_update method is called if perform_update=True
@@ -167,10 +144,9 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         obj = await self.get_or_404(session, pk)
         if user is not None:
             self.has_permission(obj, user)
-        update_data = payload.dict(
-            exclude_unset=True,
-            exclude_none=True,
-            exclude_defaults=True)
+        update_data = payload.dict(exclude_unset=True,
+                                   exclude_none=True,
+                                   exclude_defaults=True)
         self.is_update_allowed(obj, update_data)
         if perform_update:
             obj = self.perform_update(obj, update_data)
@@ -183,7 +159,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self,
         session: AsyncSession,
         pk: int,
-        user: User | None = None,
+        user: Any | None = None,
     ) -> ModelType:
         obj = await self.get_or_404(session, pk)
         if user is not None:

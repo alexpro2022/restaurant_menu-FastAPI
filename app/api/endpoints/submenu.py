@@ -40,8 +40,7 @@ async def create_(
     session: AsyncSession = Depends(get_async_session),
 ):
     menu: models.Menu = await menu_crud.get_or_404(session, menu_id)
-    return await crud.create(
-        session, payload, extra_data=menu.id, perform_create=True)
+    return await crud.create(session, payload, extra_data=menu.id)
 
 
 @router.get(

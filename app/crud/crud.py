@@ -1,23 +1,23 @@
 from app.models import Dish, Menu, Submenu
 
-from .base import CRUDBase
+from .base import CRUDBaseRepository
 
 
-class CRUD(CRUDBase):
+class CRUDRepository(CRUDBaseRepository):
     # the methods are not in use in the project
-    def is_update_allowed(self, obj: Menu, payload: dict) -> None:
+    def is_update_allowed(self, obj, payload) -> None:
         pass
 
-    def is_delete_allowed(self, obj: Menu) -> None:
+    def is_delete_allowed(self, obj) -> None:
         pass
 
 
-class MenuCRUD(CRUD):
+class MenuCRUD(CRUDRepository):
     NOT_FOUND = 'menu not found'
     OBJECT_ALREADY_EXISTS = 'Меню с таким заголовком уже существует.'
 
 
-class SubmenuCRUD(CRUD):
+class SubmenuCRUD(CRUDRepository):
     NOT_FOUND = 'submenu not found'
     OBJECT_ALREADY_EXISTS = 'Подменю с таким заголовком уже существует.'
 
@@ -25,7 +25,7 @@ class SubmenuCRUD(CRUD):
         create_data['menu_id'] = menu_id
 
 
-class DishCRUD(CRUD):
+class DishCRUD(CRUDRepository):
     NOT_FOUND = 'dish not found'
     OBJECT_ALREADY_EXISTS = 'Блюдо с таким заголовком уже существует.'
 

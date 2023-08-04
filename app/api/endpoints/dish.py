@@ -41,8 +41,7 @@ async def create_(
 ):
     submenu: models.Submenu = await submenu_crud.get_or_404(session,
                                                             submenu_id)
-    return await crud.create(
-        session, payload, extra_data=submenu.id, perform_create=True)
+    return await crud.create(session, payload, extra_data=submenu.id)
 
 
 @router.get(

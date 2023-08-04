@@ -1,12 +1,13 @@
 import pytest
 
 from . import utils as u
+from .conftest import pytest_mark_anyio
 from .fixtures import data as d
 from .fixtures.endpoints_testlib import not_allowed_methods_test, standard_tests
 
 DELETE, GET, POST, PUT, PATCH = 'DELETE', 'GET', 'POST', 'PUT', 'PATCH'
 
-pytestmark = pytest.mark.anyio
+pytestmark = pytest_mark_anyio
 
 
 @pytest.mark.parametrize('endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU))

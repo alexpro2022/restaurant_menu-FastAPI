@@ -2,7 +2,7 @@ import asyncio
 
 from httpx import AsyncClient
 
-from .conftest import CRUDBase
+from .conftest import CRUDBaseRepository, pytest_mark_anyio
 
 
 def test_async_client(async_client):
@@ -37,16 +37,17 @@ def test_dish_dynamic(request):
 
 
 def test_get_menu_crud(get_menu_crud):
-    assert isinstance(get_menu_crud, CRUDBase)
+    assert isinstance(get_menu_crud, CRUDBaseRepository)
 
 
 def test_get_submenu_crud(get_submenu_crud):
-    assert isinstance(get_submenu_crud, CRUDBase)
+    assert isinstance(get_submenu_crud, CRUDBaseRepository)
 
 
 def test_get_dish_crud(get_dish_crud):
-    assert isinstance(get_dish_crud, CRUDBase)
+    assert isinstance(get_dish_crud, CRUDBaseRepository)
 
 
+@pytest_mark_anyio
 async def test_provided_loop_is_running_loop(event_loop):
     assert event_loop is asyncio.get_running_loop()

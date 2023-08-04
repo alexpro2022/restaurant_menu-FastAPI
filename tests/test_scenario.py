@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-from .conftest import Dish, Menu, Submenu
+from .conftest import Dish, Menu, Submenu, pytest_mark_anyio
 from .fixtures import data as d
 
 
@@ -12,7 +12,7 @@ def _check_objs(objs: list, model, size: int = 1) -> None:
         assert isinstance(obj, model)
 
 
-@pytest.mark.anyio
+@pytest_mark_anyio
 async def test_scenario(dish, async_client: AsyncClient, get_test_session, get_menu_crud, get_submenu_crud, get_dish_crud):
 
     # fixture dish - cоздает через API (меню + подменю + блюдо)

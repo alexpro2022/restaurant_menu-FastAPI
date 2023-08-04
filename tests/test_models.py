@@ -18,8 +18,8 @@ def test_model_attr(model, attrs):
 
 @pytest.mark.parametrize('model, data, attrs', (
     (Dish, d.DISH_POST_PAYLOAD, (*COMMON_FIELDS, 'price')),
-    (Menu, d.MENU_POST_PAYLOAD, (*COMMON_FIELDS,)),
-    (Submenu, d.SUBMENU_POST_PAYLOAD, (*COMMON_FIELDS,)),
+    (Menu, d.MENU_POST_PAYLOAD, (*COMMON_FIELDS, 'submenus_count', 'dishes_count')),
+    (Submenu, d.SUBMENU_POST_PAYLOAD, (*COMMON_FIELDS, 'dishes_count')),
 ))
 def test_model_repr(model, data, attrs):
     representation = str(model(**data))

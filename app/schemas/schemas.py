@@ -15,8 +15,8 @@ class IdMixin(BaseModel):
 
 
 class TitleDescriptionMixin(BaseModel):
-    title: str = Field(max_length=100, example=TITLE)
-    description: str = Field(max_length=100, example=DESCRIPTION)
+    title: str = Field(max_length=256, example=TITLE)
+    description: str = Field(max_length=2000, example=DESCRIPTION)
 
 
 class DishIn(TitleDescriptionMixin):
