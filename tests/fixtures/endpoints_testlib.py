@@ -18,11 +18,6 @@ def __dummy_func(*args, **kwargs) -> str:
     return DONE
 
 
-def assert_status(response: Response, expected_status_code: int) -> None:
-    assert response.status_code == expected_status_code, (
-        f'\n   {response.status_code}\n   {response.json()}')
-
-
 def assert_msg(response: Response, expected_msg: str | None) -> None:
     if expected_msg is not None:
         response_json = response.json()
