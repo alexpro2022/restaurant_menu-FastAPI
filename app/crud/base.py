@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Any, Generic, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
 from fastapi import HTTPException
 from pydantic import BaseModel
@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core import Base
 
 try:
-    from app.models import User
+    from app.models import User  # noqa
 except ImportError:
     User = Any
 
@@ -23,7 +23,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     OBJECT_ALREADY_EXISTS = 'Object with such a unique values already exists.'
     NOT_FOUND = 'Object(s) not found.'
 
-    def __init__(self, model: Type[ModelType]) -> None:
+    def __init__(self, model: type[ModelType]) -> None:
         self.model = model
 
 # === Read ===
@@ -92,7 +92,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return await self.get_all_by_attr(session, exception=exception)
 
 # === Create, Update, Delete ===
-    def has_permission(self, obj: ModelType, user: User) -> None:
+    def has_permission(self, obj: ModelType, user: User | None) -> None:
         """Check for user permission and raise exception if not allowed."""
         raise NotImplementedError('has_permission() must be implemented.')
 

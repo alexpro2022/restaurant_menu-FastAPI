@@ -1,7 +1,7 @@
 """
 Тесты для проверки ендпойнтов.
-Реализованы стандаптные проверки статус кодов, сообщений и ответных данных 
-при валидных и не валидных значениях в именах ендпойнтов, параметров пути и 
+Реализованы стандаптные проверки статус кодов, сообщений и ответных данных
+при валидных и не валидных значениях в именах ендпойнтов, параметров пути и
 в ключах словарей параметров запроса, тела запроса и данных формы(data).
 Проверку валидных и не валидных значений этих словарей необходимо реализовывать отдельно.
 """
@@ -43,7 +43,7 @@ def get_invalid(item: int | str | dict) -> tuple[int | str | dict]:
                 value = dd.pop(key)
                 dd[invalid_key] = value
                 dicts.append(dd)
-        return None, *dicts        
+        return None, *dicts
 
 
 def strip_slashes(item: str) -> str:
@@ -76,18 +76,18 @@ async def get_response(
     headers: dict | None = None,
 ) -> Response:
     endpoint = create_endpoint(endpoint, path_param)
-    match method.upper():       
+    match method.upper():
         case 'GET':
-            return await client.get(endpoint, params=params,headers=headers)
+            return await client.get(endpoint, params=params, headers=headers)
         case 'DELETE':
-            return await client.delete(endpoint, params=params,headers=headers)        
+            return await client.delete(endpoint, params=params, headers=headers)
         case 'POST':
-            return await client.post(endpoint, params=params,headers=headers, data=data, json=json)
+            return await client.post(endpoint, params=params, headers=headers, data=data, json=json)
         case 'PUT':
-            return await client.put(endpoint, params=params,headers=headers, data=data, json=json)
+            return await client.put(endpoint, params=params, headers=headers, data=data, json=json)
         case 'PATCH':
-            return await client.patch(endpoint, params=params,headers=headers, data=data, json=json)
-    
+            return await client.patch(endpoint, params=params, headers=headers, data=data, json=json)
+
 
 async def assert_response(
     expected_status_code: int | None,
@@ -154,13 +154,13 @@ async def standard_tests(
     # invalid_endpoint_test -----------------------------------------------------------------------------------
     for invalid_endpoint in get_invalid(endpoint):
         await assert_response(
-            HTTPStatus.NOT_FOUND, client, method, invalid_endpoint, path_param=path_param,  params=params, json=json, data=data, headers=headers)
+            HTTPStatus.NOT_FOUND, client, method, invalid_endpoint, path_param=path_param, params=params, json=json, data=data, headers=headers)
 
     # invalid_path_param_test -----------------------------------------------------------------------------------
     if path_param is not None:
         for invalid_path_param in get_invalid(path_param):
             r = await assert_response(
-                HTTPStatus.NOT_FOUND, client, method, endpoint,  path_param=invalid_path_param, params=params, json=json, data=data, headers=headers)
+                HTTPStatus.NOT_FOUND, client, method, endpoint, path_param=invalid_path_param, params=params, json=json, data=data, headers=headers)
             assert_msg(r, msg_not_found)
 
     # invalid_query_params_keys_test -----------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ async def standard_tests(
 
 
 async def not_allowed_methods_test(
-    client: AsyncClient,       
+    client: AsyncClient,
     not_allowed_methods: tuple[str],
     endpoint: str,
     path_param: int | str | None = None,

@@ -79,4 +79,4 @@ async def delete_(
     session: AsyncSession = Depends(get_async_session),
 ):
     await crud.delete(session, item_id)
-    return {"status": True, "message": "The dish has been deleted"}
+    return {'status': True, 'message': 'The dish has been deleted'}

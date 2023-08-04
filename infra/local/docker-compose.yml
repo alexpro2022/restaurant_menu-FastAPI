@@ -4,23 +4,23 @@ services:
     image: postgres:15.1-alpine
     restart: always
     volumes:
-      - menus_data:/var/lib/postgresql/data/  
+      - menus_data:/var/lib/postgresql/data/
     env_file:
       - ../../.env
 
   web:
     build: ../..
     restart: always
-    depends_on: 
-      - db 
+    depends_on:
+      - db
     env_file:
       - ../../.env
-  
+
   nginx:
     image: nginx:1.21.3-alpine
     restart: always
     depends_on:
-      - web    
+      - web
     ports:
       - "8000:8000"
     volumes:

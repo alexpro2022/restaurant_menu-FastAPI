@@ -18,7 +18,7 @@ class Menu(Base):
 
     @hybrid_property
     def dishes_count(self) -> int:
-        return sum([submenu.dishes_count for submenu in self.submenus])
+        return sum(submenu.dishes_count for submenu in self.submenus)
 
     def __repr__(self) -> str:
         return (f'{super().__repr__()}'

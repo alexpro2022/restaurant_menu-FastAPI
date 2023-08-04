@@ -1,5 +1,8 @@
 import httpx
 import pytest_asyncio
+from fastapi import Response
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
 from app.core import Base, get_async_session
 from app.crud import dish_crud, menu_crud, submenu_crud
 from app.crud.base import CRUDBase  # noqa
@@ -7,14 +10,11 @@ from app.crud.crud import MenuCRUD  # noqa
 from app.main import app
 from app.models import Dish, Menu, Submenu  # noqa
 from app.schemas import MenuIn, MenuOut  # noqa
-from fastapi import Response
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
 
 from .fixtures import data as d
 
-engine = create_async_engine("sqlite+aiosqlite:///./test.db",
-                             connect_args={"check_same_thread": False})
+engine = create_async_engine('sqlite+aiosqlite:///./test.db',
+                             connect_args={'check_same_thread': False})
 
 TestingSessionLocal = async_sessionmaker(expire_on_commit=False,
                                          autocommit=False,
@@ -47,7 +47,7 @@ async def get_test_session() -> AsyncSession:
 
 @pytest_asyncio.fixture
 async def async_client():
-    async with httpx.AsyncClient(app=app, base_url="http://test") as ac:
+    async with httpx.AsyncClient(app=app, base_url='http://test') as ac:
         yield ac
 
 

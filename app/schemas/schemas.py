@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 ID = '602033b3-0462-4de1-a2f8-d8494795e0c0'
 TITLE = 'My menu/submenu/dish 1'
 DESCRIPTION = 'My menu/submenu/dish description 1'
-PRICE = 12.50
+PRICE = '12.50'
 
 
 class IdMixin(BaseModel):
@@ -20,7 +20,7 @@ class TitleDescriptionMixin(BaseModel):
 
 
 class DishIn(TitleDescriptionMixin):
-    price: float = Field(example=PRICE)
+    price: str = Field(example=PRICE)
 
 
 class DishOut(IdMixin, DishIn):

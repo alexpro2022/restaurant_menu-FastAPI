@@ -26,7 +26,7 @@ class CRUD(CRUDBase):
     def perform_create(self, create_data: dict, extra_data: Any | None = None) -> None:
         if extra_data is not None:
             create_data['title'] = extra_data
-    
+
     def perform_update(self, obj: Any, update_data: dict) -> Any:
         if obj is None or update_data is None:
             return None
@@ -42,7 +42,7 @@ class TestCRUDBaseClass1(CrudAbstractTestClass):
     schema = Schema
     crud_base = CRUDBase(Model)
     field_names = ('id', 'title', 'description')
-    post_payload = {"title": "My object", "description": "My object description"}
+    post_payload = {'title': 'My object', 'description': 'My object description'}
     msg_already_exists = 'Object with such a unique values already exists.'
     msg_not_found = 'Object(s) not found.'
 
@@ -53,7 +53,7 @@ class TestCRUDBaseClass2(CrudAbstractTestClass):
     schema = Schema
     crud_base = CRUD(Model)
     field_names = ('id', 'title', 'description')
-    post_payload = {"title": "My object", "description": "My object description"}
-    update_payload = {"title": "My updated object", "description": "My updated object description"}
+    post_payload = {'title': 'My object', 'description': 'My object description'}
+    update_payload = {'title': 'My updated object', 'description': 'My updated object description'}
     msg_already_exists = 'Object with such a unique values already exists.'
     msg_not_found = 'Object(s) not found.'

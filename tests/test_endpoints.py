@@ -2,8 +2,7 @@ import pytest
 
 from . import utils as u
 from .fixtures import data as d
-from .fixtures.endpoints_testlib import (not_allowed_methods_test,
-                                         standard_tests)
+from .fixtures.endpoints_testlib import not_allowed_methods_test, standard_tests
 
 DELETE, GET, POST, PUT, PATCH = 'DELETE', 'GET', 'POST', 'PUT', 'PATCH'
 
@@ -25,8 +24,8 @@ async def test_get_all_returns_empty_list(async_client, endpoint):
     (GET, d.ENDPOINT_MENU, None, None, *d.MENU_MSG_PACK, u.check_menu_list),
     (GET, d.ENDPOINT_MENU, d.ID, None, *d.MENU_MSG_PACK, u.check_menu),
     (PATCH, d.ENDPOINT_MENU, d.ID, d.MENU_PATCH_PAYLOAD, *d.MENU_MSG_PACK, u.check_menu_updated),
-    (DELETE, d.ENDPOINT_MENU, d.ID, None, *d.MENU_MSG_PACK, u.check_menu_deleted),        
-    # -------------------------------------------------------------------------------------------------       
+    (DELETE, d.ENDPOINT_MENU, d.ID, None, *d.MENU_MSG_PACK, u.check_menu_deleted),
+    # -------------------------------------------------------------------------------------------------
     (GET, d.ENDPOINT_SUBMENU, None, None, *d.SUBMENU_MSG_PACK, u.check_submenu_list),
     (GET, d.ENDPOINT_SUBMENU, d.ID, None, *d.SUBMENU_MSG_PACK, u.check_submenu),
     (PATCH, d.ENDPOINT_SUBMENU, d.ID, d.SUBMENU_PATCH_PAYLOAD, *d.SUBMENU_MSG_PACK, u.check_submenu_updated),
@@ -46,7 +45,7 @@ async def test_standard(dish, async_client, get_menu_crud, get_submenu_crud, get
                          msg_already_exists=msg_already_exists,
                          msg_not_found=msg_not_found,
                          func_check_valid_response=check_func)
-    
+
     if method == DELETE:
         assert await crud.get_all(get_test_session) is None
     else:
