@@ -7,8 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .conftest import Base, CRUDBaseRepository, pytest_mark_anyio
 
-# from .fixtures.base_crud_test_class import CrudAbstractTestClass
-
 
 class Model(Base):
     pass

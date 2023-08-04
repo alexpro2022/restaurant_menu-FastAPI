@@ -1,6 +1,5 @@
 from typing import AsyncGenerator
 
-import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .conftest import get_async_session, pytest_mark_anyio
