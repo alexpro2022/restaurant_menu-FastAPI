@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app import schemas
 from app.core import settings
-from app.crud import MenuRepository
+from app.repository import MenuRepository
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
 

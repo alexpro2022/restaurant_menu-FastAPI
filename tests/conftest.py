@@ -5,10 +5,10 @@ from fastapi import Response
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core import Base, get_async_session
-from app.crud import DishRepository, MenuRepository, SubmenuRepository
-from app.crud.base import CRUDBaseRepository  # noqa
 from app.main import app
 from app.models import Dish, Menu, Submenu  # noqa
+from app.repository import DishRepository, MenuRepository, SubmenuRepository
+from app.repository.base import CRUDBaseRepository  # noqa
 from app.schemas import MenuIn, MenuOut  # noqa
 
 from .fixtures import data as d
