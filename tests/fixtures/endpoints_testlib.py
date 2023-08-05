@@ -42,21 +42,29 @@ def get_invalid(item: int | str | dict) -> tuple[int | str | dict]:
 
 
 def strip_slashes(item: str) -> str:
-    if item and item[0] == '/':
-        item = item[1:]
-    if item and item[-1] == '/':
-        item = item[:-1]
-    return item
+    if item is None or not len(item):
+        return ''
+    slash = '/'
+    left = 0
+    try:
+        while item[left] == slash:
+            left += 1
+    except IndexError:
+        return ''
+    right = len(item)
+    while item[right - 1] == slash:
+        right -= 1
+    return item[left:right].lower()
 
 
-def create_endpoint(endpoint: str, path_param: dict[str, str] | None = None) -> str:
-    if endpoint in ('/', '//'):
-        if path_param is not None:
-            return f'/{strip_slashes(str(path_param))}'
-        return '/'
+def create_endpoint(endpoint: str | None, path_param: int | str | None = None) -> str:
+    if endpoint is not None and set(endpoint) == set(' '):
+        endpoint = ''
     if path_param is not None:
-        return f'/{strip_slashes(endpoint)}/{strip_slashes(str(path_param))}'
-    return f'/{strip_slashes(endpoint)}'
+        path = f'/{strip_slashes(endpoint)}/{strip_slashes(str(path_param))}'
+    else:
+        path = f'/{strip_slashes(endpoint)}'
+    return '' if set(path) == set('/') else path
 
 
 async def get_response(
