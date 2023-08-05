@@ -4,4 +4,4 @@ COPY requirements.txt .
 RUN python -m pip install --upgrade pip && \
     pip install -r requirements.txt --no-cache-dir
 COPY . .
-CMD ["pytest", "tests/test_scenario.py"]
+CMD ["pytest", "tests/integration_tests/test_scenario.py"]
