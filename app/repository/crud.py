@@ -25,8 +25,7 @@ class MenuRepository(CRUDRepository):
     OBJECT_ALREADY_EXISTS = 'Меню с таким заголовком уже существует.'
 
     def __init__(self, session: async_session):
-        self.session = session
-        self.model = Menu
+        super().__init__(Menu, session)
 
     async def get_all(self, exception: bool = False) -> list:
         menus = await super().get_all(exception)
@@ -42,8 +41,7 @@ class SubmenuRepository(CRUDRepository):
     OBJECT_ALREADY_EXISTS = 'Подменю с таким заголовком уже существует.'
 
     def __init__(self, session: async_session):
-        self.session = session
-        self.model = Submenu
+        super().__init__(Submenu, session)
 
     def perform_create(self, create_data: dict, menu_id: int) -> None:
         create_data['menu_id'] = menu_id
@@ -58,8 +56,7 @@ class DishRepository(CRUDRepository):
     OBJECT_ALREADY_EXISTS = 'Блюдо с таким заголовком уже существует.'
 
     def __init__(self, session: async_session):
-        self.session = session
-        self.model = Dish
+        super().__init__(Dish, session)
 
     def perform_create(self, create_data: dict, submenu_id: int) -> None:
         create_data['submenu_id'] = submenu_id

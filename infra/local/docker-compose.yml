@@ -8,11 +8,17 @@ services:
     env_file:
       - ../../.env
 
+  redis:
+    image: redis:latest
+    restart: always
+    depends_on:
+      - db
+
   web:
     build: ../..
     restart: always
     depends_on:
-      - db
+      - redis
     env_file:
       - ../../.env
 
