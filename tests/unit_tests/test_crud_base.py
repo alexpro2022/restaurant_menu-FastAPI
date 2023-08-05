@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .conftest import Base, CRUDBaseRepository, pytest_mark_anyio
+from ..conftest import Base, CRUDBaseRepository, pytest_mark_anyio
 
 
 class Model(Base):

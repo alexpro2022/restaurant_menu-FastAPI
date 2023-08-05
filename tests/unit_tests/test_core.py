@@ -2,7 +2,7 @@ from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .conftest import get_async_session, pytest_mark_anyio
+from ..conftest import get_async_session, pytest_mark_anyio
 
 
 @pytest_mark_anyio

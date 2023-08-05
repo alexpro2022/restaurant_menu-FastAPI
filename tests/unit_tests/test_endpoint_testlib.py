@@ -1,6 +1,6 @@
 import pytest
 
-from .fixtures import endpoints_testlib as lib
+from ..fixtures import endpoints_testlib as lib
 
 SLASHLESS = ''  # SLASHLESS'
 
