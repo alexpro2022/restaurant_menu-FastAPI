@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     app_description: str = DEFAULT_STR
     secret_key: str = DEFAULT_STR
     database_url: str = DEFAULT_DB_URL
+    redis_expire: int = 3600
 
     class Config:
         env_file = '.env'

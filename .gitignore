@@ -166,3 +166,4 @@ _main.yml
 _test*
 =GARB=
 *decorators.py
+redis

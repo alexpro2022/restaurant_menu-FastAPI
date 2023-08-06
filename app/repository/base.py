@@ -1,3 +1,4 @@
+import pickle
 from typing import Any, Generic, TypeVar
 
 from fastapi import HTTPException, status
@@ -19,9 +20,15 @@ class CRUDBaseRepository(
     OBJECT_ALREADY_EXISTS = 'Object with such a unique values already exists.'
     NOT_FOUND = 'Object(s) not found.'
 
-    def __init__(self, model: type[ModelType], session: AsyncSession) -> None:
+    def __init__(self,
+                 model: type[ModelType],
+                 session: AsyncSession,
+                 redis=None,
+                 redis_key_prefix: str | None = None) -> None:
         self.model = model
         self.session = session
+        self.redis = redis
+        self.redis_key_prefix = redis_key_prefix
 
 # === Read ===
     async def __get_by_attributes(
@@ -29,8 +36,22 @@ class CRUDBaseRepository(
     ) -> list[ModelType] | ModelType | None:
         query = (select(self.model).filter_by(**kwargs) if kwargs
                  else select(self.model))
-        result = await self.session.scalars(query.order_by(self.model.id))
-        return result.all() if all else result.first()
+        coro = self.session.scalars(query.order_by(self.model.id))
+        if self.redis is None or kwargs.get('id') is None:
+            result = await coro
+            return result.all() if all else result.first()
+        key = (f'{self.redis_key_prefix}*' if all else
+               f'{self.redis_key_prefix}{kwargs["id"]}')
+        cache = await self.redis.get(key)
+        if cache is not None:
+            return ([pickle.loads(obj) for obj in cache] if all else
+                    pickle.loads(cache))
+        result = await coro
+        result = result.all() if all else result.first()
+        for obj in result:
+            await self.redis.set(
+                f'{self.redis_key_prefix}{obj.id}', pickle.dumps(obj))
+        return result
 
     async def _get_all_by_attrs(self, *, exception: bool = False, **kwargs
                                 ) -> list[ModelType] | None:
@@ -102,6 +123,9 @@ class CRUDBaseRepository(
             raise HTTPException(status.HTTP_400_BAD_REQUEST,
                                 self.OBJECT_ALREADY_EXISTS)
         await self.session.refresh(obj)
+        if self.redis is not None:
+            await self.redis.set(
+                f'{self.redis_key_prefix}{obj.id}', pickle.dumps(obj))
         return obj
 
     async def create(
@@ -149,4 +173,6 @@ class CRUDBaseRepository(
         self.is_delete_allowed(obj)
         await self.session.delete(obj)
         await self.session.commit()
+        if self.redis is not None:
+            self.redis.delete(f'{self.redis_key_prefix}{pk}')
         return obj

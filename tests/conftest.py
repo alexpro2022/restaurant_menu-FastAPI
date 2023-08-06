@@ -1,3 +1,4 @@
+import aioredis
 import httpx
 import pytest
 import pytest_asyncio
@@ -39,6 +40,14 @@ async def init_db():
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest_asyncio.fixture()
+async def redis():
+    redis = await aioredis.create_redis(address=('redis', 6379))
+    yield redis
+    redis.close()
+    await redis.wait_closed()
 
 
 @pytest_asyncio.fixture
