@@ -39,15 +39,13 @@
 <h1></h1>
 ☑ Вынести бизнес логику и запросы в БД в отдельные слои приложения.
 
-☐ Добавить кэширование запросов к API  с использованием Redis. Не забыть про инвалидацию кэша.
+☑ Добавить кэширование запросов к API  с использованием Redis. Не забыть про инвалидацию кэша.
 
 ☑ Добавить pre-commit хуки в проект. Файл yaml будет прикреплен к ДЗ.
 
 ☑ Покрыть проект type hints (тайпхинтами)
 
-☐ Описать ручки API в соответствий c OpenAPI
-
-☐ Реализовать в тестах аналог Django reverse() для FastAPI
+☑ Описать ручки API в соответствий c OpenAPI
 
 **Требования:**
   - Код должен проходить все линтеры.
@@ -87,7 +85,7 @@
 [![asyncpg](https://img.shields.io/badge/-asyncpg-464646?logo=PostgreSQL)](https://pypi.org/project/asyncpg/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-v2.0-blue?logo=sqlalchemy)](https://www.sqlalchemy.org/)
 [![Alembic](https://img.shields.io/badge/-Alembic-464646?logo=alembic)](https://alembic.sqlalchemy.org/en/latest/)
-[![aioredis](https://img.shields.io/badge/-Alembic-464646?logo=aioredis)](https://aioredis.readthedocs.io/en/latest/)
+[![aioredis](https://img.shields.io/badge/-aioredis-464646?logo=aioredis)](https://aioredis.readthedocs.io/en/latest/)
 [![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
 [![docker_compose](https://img.shields.io/badge/-Docker%20Compose-464646?logo=docker)](https://docs.docker.com/compose/)
 [![Nginx](https://img.shields.io/badge/-NGINX-464646?logo=NGINX)](https://nginx.org/ru/)
