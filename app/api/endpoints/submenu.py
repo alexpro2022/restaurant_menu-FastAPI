@@ -2,7 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app import models, schemas
+from app import schemas
 from app.core import settings
 from app.repository import MenuRepository, SubmenuRepository
 
@@ -24,7 +24,7 @@ SUM_DELETE_ITEM = 'Удаление подменю'
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
 async def get_all_(menu_id: int, menu_crud: menu):
-    menu: models.Menu = await menu_crud.get(menu_id)
+    menu = await menu_crud.get(menu_id)
     return [] if menu is None else menu.submenus
 
 
@@ -37,7 +37,7 @@ async def get_all_(menu_id: int, menu_crud: menu):
 async def create_(
     menu_id: int, payload: schemas.SubmenuIn, menu_crud: menu, crud: submenu
 ):
-    menu: models.Menu = await menu_crud.get_or_404(menu_id)
+    menu = await menu_crud.get_or_404(menu_id)
     return await crud.create(payload, extra_data=menu.id)
 
 

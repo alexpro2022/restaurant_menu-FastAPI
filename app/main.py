@@ -16,9 +16,8 @@ app.include_router(main_router)
 @app.on_event('startup')
 async def startup_event():
     global redis_client
-    redis_client = aioredis.from_url(
-        'redis://localhost', encoding='utf-8', decode_responses=True
-    )
+    redis_client = aioredis.from_url(settings.redis_url,
+                                     decode_responses=True)
 
 
 @app.on_event('shutdown')

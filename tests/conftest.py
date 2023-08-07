@@ -1,11 +1,13 @@
+from typing import Any, AsyncGenerator, Generator
+
 import aioredis
-import httpx
 import pytest
 import pytest_asyncio
 from fastapi import Response
+from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.core import Base, get_async_session
+from app.core import Base, get_async_session, settings
 from app.main import app
 from app.models import Dish, Menu, Submenu  # noqa
 from app.repository import DishRepository, MenuRepository, SubmenuRepository
@@ -43,34 +45,31 @@ async def init_db():
 
 
 @pytest_asyncio.fixture()
-async def redis():
-    redis = await aioredis.create_redis(address=('redis', 6379))
-    yield redis
-    redis.close()
-    await redis.wait_closed()
+def redis() -> Generator:
+    yield aioredis.from_url(settings.redis_url, decode_responses=True)
 
 
 @pytest_asyncio.fixture
-async def get_test_session() -> AsyncSession:
+async def get_test_session() -> AsyncGenerator[AsyncSession, Any]:
     async with TestingSessionLocal() as session:
         yield session
 
 
 @pytest_asyncio.fixture
-async def async_client():
-    async with httpx.AsyncClient(app=app, base_url='http://test') as ac:
+async def async_client() -> AsyncGenerator[AsyncClient, Any]:
+    async with AsyncClient(app=app, base_url='http://test') as ac:
         yield ac
 
 
 @pytest_asyncio.fixture
-async def menu(async_client: httpx.AsyncClient) -> Response:
+async def menu(async_client: AsyncClient) -> Response:
     menu = await async_client.post(d.ENDPOINT_MENU, json=d.MENU_POST_PAYLOAD)
     assert menu.status_code == 201, (menu.headers, menu.content)
     yield menu
 
 
 @pytest_asyncio.fixture
-async def submenu(async_client: httpx.AsyncClient, menu) -> Response:
+async def submenu(async_client: AsyncClient, menu) -> Response:
     assert menu.status_code == 201, (menu.headers, menu.content)
     submenu = await async_client.post(d.ENDPOINT_SUBMENU, json=d.SUBMENU_POST_PAYLOAD)
     assert submenu.status_code == 201, (submenu.headers, submenu.content)
@@ -78,7 +77,7 @@ async def submenu(async_client: httpx.AsyncClient, menu) -> Response:
 
 
 @pytest_asyncio.fixture
-async def dish(async_client: httpx.AsyncClient, submenu) -> Response:
+async def dish(async_client: AsyncClient, submenu) -> Response:
     assert submenu.status_code == 201, (submenu.headers, submenu.content)
     dish = await async_client.post(d.ENDPOINT_DISH, json=d.DISH_POST_PAYLOAD)
     assert dish.status_code == 201, (dish.headers, dish.content)

@@ -40,9 +40,11 @@ class CRUDBaseRepository(
         if self.redis is None or kwargs.get('id') is None:
             result = await coro
             return result.all() if all else result.first()
-        key = (f'{self.redis_key_prefix}*' if all else
-               f'{self.redis_key_prefix}{kwargs["id"]}')
-        cache = await self.redis.get(key)
+        cache = ([await self.redis.get(key)
+                  for key in self.redis.keys(f'{self.redis_key_prefix}*')]
+                 if all else
+                 await self.redis.get(f'{self.redis_key_prefix}{kwargs["id"]}')
+                 )
         if cache is not None:
             return ([pickle.loads(obj) for obj in cache] if all else
                     pickle.loads(cache))
