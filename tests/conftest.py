@@ -44,10 +44,11 @@ async def init_db():
 
 @pytest_asyncio.fixture()
 async def redis():
-    redis = await aioredis.create_redis(address=('redis', 6379))
+    redis = await aioredis.from_url(
+        'redis://localhost', encoding='utf-8', decode_responses=True
+    )
     yield redis
     redis.close()
-    await redis.wait_closed()
 
 
 @pytest_asyncio.fixture
