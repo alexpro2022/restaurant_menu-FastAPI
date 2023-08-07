@@ -44,7 +44,7 @@ class SubmenuRepository(CRUDRepository):
     def __init__(self, session: async_session):
         super().__init__(Submenu, session, redis_client, 'submenu')
 
-    def perform_create(self, create_data: dict, menu_id: int) -> None:
+    def perform_create(self, create_data: dict, menu_id: int) -> None:  # type: ignore
         create_data['menu_id'] = menu_id
 
     async def delete(self, pk: int, user: Any | None = None) -> dict:
@@ -59,7 +59,7 @@ class DishRepository(CRUDRepository):
     def __init__(self, session: async_session):
         super().__init__(Dish, session, redis_client, 'dish')
 
-    def perform_create(self, create_data: dict, submenu_id: int) -> None:
+    def perform_create(self, create_data: dict, submenu_id: int) -> None:  # type: ignore
         create_data['submenu_id'] = submenu_id
 
     async def delete(self, pk: int, user: Any | None = None) -> dict:

@@ -49,10 +49,15 @@ class CRUDBaseRepository(
             return ([pickle.loads(obj) for obj in cache] if all else
                     pickle.loads(cache))
         result = await coro
-        result = result.all() if all else result.first()
-        for obj in result:
+        if all:
+            result = result.all()
+            for obj in result:
+                await self.redis.set(
+                    f'{self.redis_key_prefix}{obj.id}', pickle.dumps(obj))
+        else:
+            result = result.first()
             await self.redis.set(
-                f'{self.redis_key_prefix}{obj.id}', pickle.dumps(obj))
+                f'{self.redis_key_prefix}{result.id}', pickle.dumps(result))
         return result
 
     async def _get_all_by_attrs(self, *, exception: bool = False, **kwargs
@@ -74,13 +79,13 @@ class CRUDBaseRepository(
         object = await self.__get_by_attributes(all=False, **kwargs)
         if object is None and exception:
             raise HTTPException(status.HTTP_404_NOT_FOUND, self.NOT_FOUND)
-        return object
+        return object  # type: ignore
 
     async def get(self, pk: int) -> ModelType | None:
         return await self._get_by_attrs(id=pk)
 
     async def get_or_404(self, pk: int) -> ModelType:
-        return await self._get_by_attrs(id=pk, exception=True)
+        return await self._get_by_attrs(id=pk, exception=True)  # type: ignore
 
     async def get_all(self, exception: bool = False) -> list[ModelType] | None:
         return await self._get_all_by_attrs(exception=exception)
