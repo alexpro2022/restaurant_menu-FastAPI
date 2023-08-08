@@ -24,7 +24,7 @@ class DishIn(TitleDescriptionMixin):
 
 
 class DishOut(IdMixin, DishIn):
-    price: str
+    price: str  # type: ignore
 
 
 class SubmenuIn(TitleDescriptionMixin):

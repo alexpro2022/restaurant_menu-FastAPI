@@ -1,13 +1,13 @@
 from typing import Any, AsyncGenerator, Generator
 
-import aioredis
 import pytest
 import pytest_asyncio
+from fakeredis import aioredis
 from fastapi import Response
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.core import Base, get_async_session, settings
+from app.core import Base, get_aioredis, get_async_session, settings
 from app.main import app
 from app.models import Dish, Menu, Submenu  # noqa
 from app.repository import DishRepository, MenuRepository, SubmenuRepository
@@ -16,7 +16,7 @@ from app.schemas import MenuIn, MenuOut  # noqa
 
 from .fixtures import data as d
 
-pytest_mark_anyio = pytest.mark.anyio
+pytest_mark_anyio = pytest.mark.asyncio
 
 engine = create_async_engine('sqlite+aiosqlite:///./test.db',
                              connect_args={'check_same_thread': False})
@@ -32,7 +32,12 @@ async def override_get_async_session():
         yield session
 
 
+async def override_get_aioredis() -> AsyncGenerator:
+    yield aioredis.FakeRedis()
+
+
 app.dependency_overrides[get_async_session] = override_get_async_session
+app.dependency_overrides[get_aioredis] = override_get_aioredis
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -44,17 +49,7 @@ async def init_db():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture()
-def redis() -> Generator:
-    yield aioredis.from_url(settings.redis_url, decode_responses=True)
-
-
-@pytest_asyncio.fixture
-async def get_test_session() -> AsyncGenerator[AsyncSession, Any]:
-    async with TestingSessionLocal() as session:
-        yield session
-
-
+# --- Fixtures for endpoints testing -----------------------------------------------
 @pytest_asyncio.fixture
 async def async_client() -> AsyncGenerator[AsyncClient, Any]:
     async with AsyncClient(app=app, base_url='http://test') as ac:
@@ -84,16 +79,28 @@ async def dish(async_client: AsyncClient, submenu) -> Response:
     yield dish
 
 
-@pytest_asyncio.fixture
-async def get_menu_crud(get_test_session):
-    yield MenuRepository(get_test_session)
+# --- Fixtures for repository testing -----------------------------------------------
+@pytest.fixture
+def get_test_redis() -> Generator:
+    yield aioredis.FakeRedis()
 
 
 @pytest_asyncio.fixture
-async def get_submenu_crud(get_test_session):
-    yield SubmenuRepository(get_test_session)
+async def get_test_session() -> AsyncGenerator[AsyncSession, Any]:
+    async with TestingSessionLocal() as session:
+        yield session
 
 
 @pytest_asyncio.fixture
-async def get_dish_crud(get_test_session):
-    yield DishRepository(get_test_session)
+async def get_menu_crud(get_test_session, get_test_redis):
+    yield MenuRepository(get_test_session, get_test_redis)
+
+
+@pytest_asyncio.fixture
+async def get_submenu_crud(get_test_session, get_test_redis):
+    yield SubmenuRepository(get_test_session, get_test_redis)
+
+
+@pytest_asyncio.fixture
+async def get_dish_crud(get_test_session, get_test_redis):
+    yield DishRepository(get_test_session, get_test_redis)

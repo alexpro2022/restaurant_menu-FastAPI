@@ -10,20 +10,16 @@ services:
 
   redis:
     image: redis:latest
-    restart: always
-    depends_on:
-      - db
-    volumes:
-      - ./redis/data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-    ports:
-      - '6379:6379'
-    command: redis-server /usr/local/etc/redis/redis.conf
+    container_name: redis
+    command: --port 6379
+    expose:
+      - 6379
 
   web:
     build: ../..
     restart: always
     depends_on:
+      - db
       - redis
     env_file:
       - ../../.env
