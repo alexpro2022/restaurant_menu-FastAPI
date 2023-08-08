@@ -1,1 +1,1 @@
-from .crud import async_session, MenuRepository, SubmenuRepository, DishRepository  # noqa
+from .crud import MenuRepository, SubmenuRepository, DishRepository  # noqa

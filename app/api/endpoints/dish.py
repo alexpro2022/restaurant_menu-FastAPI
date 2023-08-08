@@ -2,14 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app import schemas
+from app import models, schemas, services
 from app.core import settings
-from app.repository import DishRepository, SubmenuRepository
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Dishes'])
 
-dish = Annotated[DishRepository, Depends()]
-submenu = Annotated[SubmenuRepository, Depends()]
+dish = Annotated[services.DishService, Depends()]
+submenu = Annotated[services.SubmenuService, Depends()]
 
 SUM_ALL_ITEMS = 'Выдача списка блюд'
 SUM_ITEM = 'Возвращает блюдо по ID'
@@ -24,8 +23,8 @@ SUM_DELETE_ITEM = 'Удаление блюда'
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
 async def get_all_(submenu_id: int, submenu_crud: submenu):
-    submenu = await submenu_crud.get(submenu_id)
-    return [] if submenu is None else submenu.dishes
+    submenu = await submenu_crud.get(submenu_id)  # type: ignore
+    return [] if submenu is None else submenu.dishes  # type: ignore
 
 
 @router.post(
@@ -40,7 +39,7 @@ async def create_(
     submenu_crud: submenu,
     crud: dish,
 ):
-    submenu = await submenu_crud.get_or_404(submenu_id)
+    submenu: models.Submenu = await submenu_crud.get_or_404(submenu_id)
     return await crud.create(payload, extra_data=submenu.id)
 
 

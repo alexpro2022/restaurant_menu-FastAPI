@@ -2,13 +2,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app import schemas
+from app import schemas, services
 from app.core import settings
-from app.repository import MenuRepository
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
 
-menu = Annotated[MenuRepository, Depends()]
+menu = Annotated[services.MenuService, Depends()]
 
 SUM_ALL_ITEMS = 'Выдача списка меню'
 SUM_ITEM = 'Возвращает меню по ID'

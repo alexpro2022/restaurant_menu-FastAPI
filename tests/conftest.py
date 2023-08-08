@@ -10,9 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core import Base, get_aioredis, get_async_session, settings
 from app.main import app
 from app.models import Dish, Menu, Submenu  # noqa
-from app.repository import DishRepository, MenuRepository, SubmenuRepository
+from app.repository import DishRepository, MenuRepository, SubmenuRepository  # noqa
 from app.repository.base import CRUDBaseRepository  # noqa
 from app.schemas import MenuIn, MenuOut  # noqa
+from app.services import DishService, MenuService, SubmenuService
 
 from .fixtures import data as d
 
@@ -93,14 +94,14 @@ async def get_test_session() -> AsyncGenerator[AsyncSession, Any]:
 
 @pytest_asyncio.fixture
 async def get_menu_crud(get_test_session, get_test_redis):
-    yield MenuRepository(get_test_session, get_test_redis)
+    yield MenuService(get_test_session, get_test_redis)
 
 
 @pytest_asyncio.fixture
 async def get_submenu_crud(get_test_session, get_test_redis):
-    yield SubmenuRepository(get_test_session, get_test_redis)
+    yield SubmenuService(get_test_session, get_test_redis)
 
 
 @pytest_asyncio.fixture
 async def get_dish_crud(get_test_session, get_test_redis):
-    yield DishRepository(get_test_session, get_test_redis)
+    yield DishService(get_test_session, get_test_redis)

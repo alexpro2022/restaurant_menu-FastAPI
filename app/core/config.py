@@ -1,10 +1,9 @@
-from pydantic import BaseSettings  # , EmailStr
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
     # constants
     DEFAULT_STR = 'To be implemented in .env file'
-    DEFAULT_DB_URL = 'sqlite+aiosqlite:///./fastapi.db'
     SUPER_ONLY = '__Только для суперюзеров:__ '
     AUTH_ONLY = '__Только для авторизованных пользователей:__ '
     ALL_USERS = '__Для всех пользователей:__ '
@@ -13,7 +12,7 @@ class Settings(BaseSettings):
     app_title: str = DEFAULT_STR
     app_description: str = DEFAULT_STR
     secret_key: str = DEFAULT_STR
-    database_url: str = DEFAULT_DB_URL
+    database_url: str = 'sqlite+aiosqlite:///./fastapi.db'
     redis_url: str = 'redis://redis:6379'
     redis_expire: int = 3600
 

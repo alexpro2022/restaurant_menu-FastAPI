@@ -2,14 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from app import schemas
+from app import models, schemas, services
 from app.core import settings
-from app.repository import MenuRepository, SubmenuRepository
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Submenus'])
 
-menu = Annotated[MenuRepository, Depends()]
-submenu = Annotated[SubmenuRepository, Depends()]
+menu = Annotated[services.MenuService, Depends()]
+submenu = Annotated[services.SubmenuService, Depends()]
 
 SUM_ALL_ITEMS = 'Выдача списка подменю'
 SUM_ITEM = 'Возвращает подменю по ID'
@@ -24,8 +23,8 @@ SUM_DELETE_ITEM = 'Удаление подменю'
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
 async def get_all_(menu_id: int, menu_crud: menu):
-    menu = await menu_crud.get(menu_id)
-    return [] if menu is None else menu.submenus
+    menu = await menu_crud.get(menu_id)  # type: ignore
+    return [] if menu is None else menu.submenus  # type: ignore
 
 
 @router.post(
@@ -37,7 +36,7 @@ async def get_all_(menu_id: int, menu_crud: menu):
 async def create_(
     menu_id: int, payload: schemas.SubmenuIn, menu_crud: menu, crud: submenu
 ):
-    menu = await menu_crud.get_or_404(menu_id)
+    menu: models.Menu = await menu_crud.get_or_404(menu_id)
     return await crud.create(payload, extra_data=menu.id)
 
 

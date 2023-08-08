@@ -1,18 +1,15 @@
-import pickle
 from typing import Any, Generic, TypeVar
 
-from aioredis import Redis
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import exc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import Base, settings
+from app.core import Base
 
 ModelType = TypeVar('ModelType', bound=Base)
 CreateSchemaType = TypeVar('CreateSchemaType', bound=BaseModel)
 UpdateSchemaType = TypeVar('UpdateSchemaType', bound=BaseModel)
-serializer = pickle
 
 
 class CRUDBaseRepository(
@@ -24,48 +21,19 @@ class CRUDBaseRepository(
 
     def __init__(self,
                  model: type[ModelType],
-                 session: AsyncSession,
-                 redis: Redis | None = None,
-                 redis_key_prefix: str | None = None) -> None:
+                 session: AsyncSession):
         self.model = model
         self.session = session
-        self.redis = redis
-        self.redis_key_prefix = redis_key_prefix
-
-    async def _redis_set(self, obj: ModelType) -> None:
-        if self.redis is not None and obj is not None:
-            await self.redis.set(f'{self.redis_key_prefix}{obj.id}',
-                                 serializer.dumps(obj),
-                                 ex=settings.redis_expire)
-
-    async def _redis_flush(self) -> None:
-        if self.redis is not None:
-            await self.redis.flushall(asynchronous=True)
 
 # === Read ===
     async def __get_by_attributes(
-        self, *, all: bool = True, **kwargs,
+        self, *, all: bool = True, order_by: str | None = None, **kwargs,
     ) -> list[ModelType] | ModelType | None:
-        query = (select(self.model).filter_by(**kwargs) if kwargs
-                 else select(self.model))
-        if self.redis is None:
-            result = await self.session.scalars(query.order_by(self.model.id))
-            return result.all() if all else result.first()
-        cache = ([await self.redis.get(key)
-                  for key in await self.redis.keys(f'{self.redis_key_prefix}*')]
-                 if all else
-                 await self.redis.get(f'{self.redis_key_prefix}{kwargs.get("id")}'))
-        if cache:
-            return ([serializer.loads(obj) for obj in cache] if all else
-                    serializer.loads(cache))
+        # TODO: to make order_by
+        query = (select(self.model).filter_by(**kwargs) if kwargs  # try where instead of filter_by
+                 else select(self.model))  # .order_by(self.model.id)
         result = await self.session.scalars(query.order_by(self.model.id))
-        if all:
-            result = result.all()
-            [await self._redis_set(obj) for obj in result if result is not None]  # type: ignore
-        else:
-            result = result.first()
-            await self._redis_set(result)
-        return result
+        return result.all() if all else result.first()
 
     async def _get_all_by_attrs(self, *, exception: bool = False, **kwargs
                                 ) -> list[ModelType] | None:
@@ -137,7 +105,6 @@ class CRUDBaseRepository(
             raise HTTPException(status.HTTP_400_BAD_REQUEST,
                                 self.OBJECT_ALREADY_EXISTS)
         await self.session.refresh(obj)
-        await self._redis_flush()
         return obj
 
     async def create(
@@ -185,5 +152,4 @@ class CRUDBaseRepository(
         self.is_delete_allowed(obj)
         await self.session.delete(obj)
         await self.session.commit()
-        await self._redis_flush()
         return obj
