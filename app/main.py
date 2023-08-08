@@ -9,16 +9,3 @@ app = FastAPI(
 )
 
 app.include_router(main_router)
-
-
-'''
-@app.on_event('startup')
-async def startup_event():
-    global redis_client
-    redis_client = aioredis.from_url(settings.redis_url)
-
-
-@app.on_event('shutdown')
-async def shutdown_event():
-    redis_client.close()
-'''
