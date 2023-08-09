@@ -20,13 +20,10 @@ class BaseRedis:
         if self.redis is not None:
             await self.redis.flushall(asynchronous=True)
 
-    async def get_obj(self, key: int | str, forced_key: bool = False) -> ModelType | None:
+    async def get_obj(self, key: int | str) -> ModelType | None:
         if self.redis is not None:
-            if forced_key:
-                key = key
-            else:
-                key = (key if (isinstance(key, str) and key.startswith(self.redis_key_prefix))  # type: ignore
-                       else f'{self.redis_key_prefix}{key}')
+            key = (key if (isinstance(key, str) and key.startswith(self.redis_key_prefix))  # type: ignore
+                   else f'{self.redis_key_prefix}{key}')
             cache = await self.redis.get(key)
             if cache:
                 result = serializer.loads(cache)

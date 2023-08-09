@@ -39,13 +39,11 @@ class TestCRUDBaseRepository:
     crud_base_not_implemented: CRUDBaseRepository
     # base crud with implemented middle methods
     crud_base_implemented: CRUD
-    session: AsyncSession
 
     @pytest.fixture
     def setup_method(self, get_test_session):
-        self.session = get_test_session
-        self.crud_base_not_implemented = CRUDBaseRepository(self.model, self.session)
-        self.crud_base_implemented = CRUD(self.model, self.session)
+        self.crud_base_not_implemented = CRUDBaseRepository(self.model, get_test_session)
+        self.crud_base_implemented = CRUD(self.model, get_test_session)
 
     def _check_exc_info(self, exc_info, expected_msg: str, expected_error_code: int | None = None) -> None:
         if expected_error_code is None:
