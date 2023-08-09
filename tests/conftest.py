@@ -1,5 +1,6 @@
 from typing import Any, AsyncGenerator, Generator
 
+import faker
 import pytest
 import pytest_asyncio
 from fakeredis import aioredis
@@ -50,9 +51,11 @@ async def init_db():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest.fixture(autouse=True)
-def get_test_redis() -> Generator:
-    yield aioredis.FakeRedis()
+@pytest_asyncio.fixture
+async def get_test_redis() -> AsyncGenerator[aioredis.FakeRedis, Any]:
+    r = aioredis.FakeRedis()
+    yield r
+    await r.flushall()
 
 
 # --- Fixtures for endpoints testing -----------------------------------------------
@@ -105,3 +108,8 @@ async def get_submenu_crud(get_test_session, get_test_redis):
 @pytest_asyncio.fixture
 async def get_dish_crud(get_test_session, get_test_redis):
     yield DishService(get_test_session, get_test_redis)
+
+
+@pytest.fixture
+def get_profile_object():
+    return faker.Faker().simple_profile()

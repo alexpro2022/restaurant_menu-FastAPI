@@ -58,7 +58,7 @@ class TestCRUDBaseRepository:
     def _check_obj(self, obj: Base) -> None:
         assert isinstance(obj, self.model)
         for field_name in self.field_names:
-            assert hasattr(obj, field_name), field_name
+            assert getattr(obj, field_name, None), field_name
 
     def _compare_obj_payload(self, obj: Base, payload: dict[str, str]) -> None:
         assert obj.title == payload['title'], (obj.title, payload['title'])
@@ -69,15 +69,17 @@ class TestCRUDBaseRepository:
         assert isinstance(method, type(instance.__init__))  # type: ignore [misc]
         return method
 
-    async def _create_object(self,) -> Base:
-        return await self.crud_base_not_implemented._save(self.model(**self.post_payload))
-
     async def _get_all(self) -> list | None:
         return await self.crud_base_not_implemented.get_all()
 
+    async def _create_object(self,) -> Base:
+        return await self.crud_base_not_implemented._save(self.model(**self.post_payload))
+
     @pytest_mark_anyio
     async def test_save(self, setup_method):
+        assert await self._get_all() is None
         self._check_obj(await self._create_object())
+        assert await self._get_all() is not None
 
     @pytest_mark_anyio
     async def test_save_exception(self, setup_method):
