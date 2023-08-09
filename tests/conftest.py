@@ -17,7 +17,7 @@ from app.services import DishService, MenuService, SubmenuService
 
 from .fixtures import data as d
 
-pytest_mark_anyio = pytest.mark.asyncio
+pytest_mark_anyio = pytest.mark.anyio
 
 engine = create_async_engine('sqlite+aiosqlite:///./test.db',
                              connect_args={'check_same_thread': False})
@@ -33,7 +33,7 @@ async def override_get_async_session():
         yield session
 
 
-async def override_get_aioredis() -> AsyncGenerator:
+def override_get_aioredis() -> Generator:
     yield aioredis.FakeRedis()
 
 
@@ -50,7 +50,13 @@ async def init_db():
         await conn.run_sync(Base.metadata.drop_all)
 
 
+@pytest.fixture(autouse=True)
+def get_test_redis() -> Generator:
+    yield aioredis.FakeRedis()
+
 # --- Fixtures for endpoints testing -----------------------------------------------
+
+
 @pytest_asyncio.fixture
 async def async_client() -> AsyncGenerator[AsyncClient, Any]:
     async with AsyncClient(app=app, base_url='http://test') as ac:
@@ -81,11 +87,6 @@ async def dish(async_client: AsyncClient, submenu) -> Response:
 
 
 # --- Fixtures for repository testing -----------------------------------------------
-@pytest.fixture
-def get_test_redis() -> Generator:
-    yield aioredis.FakeRedis()
-
-
 @pytest_asyncio.fixture
 async def get_test_session() -> AsyncGenerator[AsyncSession, Any]:
     async with TestingSessionLocal() as session:
