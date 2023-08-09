@@ -37,20 +37,20 @@ class MenuService(BaseService):
                      payload: typing.Any,
                      extra_data: typing.Any | None = None) -> repo.ModelType:
         # creation in db and redis
-        menu: Menu = await super().create(payload, extra_data, flush=False)
+        menu: Menu = await super().create(payload, extra_data)
         await self.redis.set_obj(menu)
         return menu
 
     async def update(self,  # type: ignore [override]
                      pk: int,
                      payload: typing.Any) -> repo.ModelType:
-        menu: Menu = await super().update(pk, payload, flush=False)
+        menu: Menu = await super().update(pk, payload)
         await self.redis.set_obj(menu)
         return menu
 
     async def delete(self, pk: int) -> dict:  # type: ignore [override]
         # deletion from db and redis
-        menu: Menu = await super().delete(pk, flush=False)
+        menu: Menu = await super().delete(pk)
         for submenu in menu.submenus:
             for dish in submenu.dishes:
                 await self.dish_redis.delete_obj(dish)
@@ -73,7 +73,7 @@ class SubmenuService(BaseService):
                      payload: typing.Any,
                      extra_data: typing.Any | None = None) -> repo.ModelType:
         # creation in db
-        submenu: Submenu = await super().create(payload, extra_data, flush=False)
+        submenu: Submenu = await super().create(payload, extra_data)
         # creation in redis and refreshing related models
         menu: Menu = await self.menu_db.get_or_404(pk=submenu.menu_id)
         for redis, item in ((self.menu_redis, menu), (self.redis, submenu)):
@@ -83,13 +83,13 @@ class SubmenuService(BaseService):
     async def update(self,  # type: ignore [override]
                      pk: int,
                      payload: typing.Any) -> repo.ModelType:
-        submenu: Submenu = await super().update(pk, payload, flush=False)
+        submenu: Submenu = await super().update(pk, payload)
         await self.redis.set_obj(submenu)
         return submenu
 
     async def delete(self, pk: int) -> dict:  # type: ignore [override]
         # deletion from db and redis
-        submenu: Submenu = await super().delete(pk, flush=False)
+        submenu: Submenu = await super().delete(pk)
         for dish in submenu.dishes:
             await self.dish_redis.delete_obj(dish)
         await self.redis.delete_obj(submenu)
@@ -114,7 +114,7 @@ class DishService(BaseService):
                      payload: typing.Any,
                      extra_data: typing.Any | None = None) -> repo.ModelType:
         # creation in db
-        dish: Dish = await super().create(payload, extra_data, flush=False)
+        dish: Dish = await super().create(payload, extra_data)
         # creation in redis and refreshing related models
         submenu: Submenu = await self.submenu_db.get_or_404(pk=dish.submenu_id)
         menu: Menu = await self.menu_db.get_or_404(pk=submenu.menu_id)
@@ -125,13 +125,13 @@ class DishService(BaseService):
     async def update(self,  # type: ignore [override]
                      pk: int,
                      payload: typing.Any) -> repo.ModelType:
-        dish: Dish = await super().update(pk, payload, flush=False)
+        dish: Dish = await super().update(pk, payload)
         await self.redis.set_obj(dish)
         return dish
 
     async def delete(self, pk: int) -> dict:  # type: ignore [override]
         # deletion from db and redis
-        dish: Dish = await super().delete(pk, flush=False)
+        dish: Dish = await super().delete(pk)
         await self.redis.delete_obj(dish)
         # refreshing related models
         submenu: Submenu = await self.submenu_db.get_or_404(pk=dish.submenu_id)

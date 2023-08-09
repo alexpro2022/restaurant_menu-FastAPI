@@ -18,7 +18,7 @@ from app.services import DishService, MenuService, SubmenuService
 
 from .fixtures import data as d
 
-pytest_mark_anyio = pytest.mark.anyio
+pytest_mark_anyio = pytest.mark.asyncio
 
 engine = create_async_engine('sqlite+aiosqlite:///./test.db',
                              connect_args={'check_same_thread': False})
@@ -34,8 +34,10 @@ async def override_get_async_session():
         yield session
 
 
-def override_get_aioredis() -> Generator:
-    yield aioredis.FakeRedis()
+async def override_get_aioredis() -> AsyncGenerator[aioredis.FakeRedis, Any]:
+    r = aioredis.FakeRedis()
+    yield r
+    await r.flushall()
 
 
 app.dependency_overrides[get_async_session] = override_get_async_session
@@ -113,3 +115,8 @@ async def get_dish_crud(get_test_session, get_test_redis):
 @pytest.fixture
 def get_profile_object():
     return faker.Faker().simple_profile()
+
+
+def info(item):
+    print(item)
+    assert False

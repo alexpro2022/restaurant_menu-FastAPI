@@ -1,9 +1,6 @@
 """
-This is a base service class implementation with simple redis refreshing by deleting
-all keys in all databases on the current host (using the flushall method for that).
-This behavior might be acceptable in systems with few renewals (the ones servicing mostly GET requests).
-If, however, this behavior is not applicable for your needs, please override the
-create, update, and delete methods in the inherited class with the flush=False attr.
+This is a base service class implementation. Please override the
+create, update, and delete methods in the inherited class with extra logic for Redis.
 """
 import typing
 
@@ -43,21 +40,13 @@ class BaseService:
 
     async def create(self,
                      payload: typing.Any,
-                     extra_data: typing.Any | None = None,
-                     flush: bool = True) -> base.ModelType:
-        if flush:
-            await self.redis.flush_all()
+                     extra_data: typing.Any | None = None) -> base.ModelType:
         return await self.db.create(payload, extra_data=extra_data)
 
     async def update(self,
                      pk: int,
-                     payload: typing.Any,
-                     flush: bool = True) -> base.ModelType:
-        if flush:
-            await self.redis.flush_all()
+                     payload: typing.Any) -> base.ModelType:
         return await self.db.update(pk, payload)
 
-    async def delete(self, pk: int, flush: bool = True) -> base.ModelType:
-        if flush:
-            await self.redis.flush_all()
+    async def delete(self, pk: int) -> base.ModelType:
         return await self.db.delete(pk)

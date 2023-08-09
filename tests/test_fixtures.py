@@ -55,7 +55,7 @@ async def test_get_test_redis(get_test_redis):
     assert await get_test_redis.set('key', 'value2')
     assert await get_test_redis.get('key') == b'value2'
     assert await get_test_redis.delete('key')
-    assert await get_test_redis.get('key') == None
+    assert await get_test_redis.get('key') is None
 
 
 def test_get_test_session(get_test_session):
