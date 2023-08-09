@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from app.core import Base, get_aioredis, get_async_session, settings
 from app.main import app
 from app.models import Dish, Menu, Submenu  # noqa
-from app.repository import DishRepository, MenuRepository, SubmenuRepository  # noqa
-from app.repository.base import CRUDBaseRepository  # noqa
+from app.repositories import DishRepository, MenuRepository, SubmenuRepository  # noqa
+from app.repositories.base_db_repository import CRUDBaseRepository  # noqa
 from app.schemas import MenuIn, MenuOut  # noqa
 from app.services import DishService, MenuService, SubmenuService
 
@@ -110,13 +110,3 @@ async def get_submenu_crud(get_test_session, get_test_redis):
 @pytest_asyncio.fixture
 async def get_dish_crud(get_test_session, get_test_redis):
     yield DishService(get_test_session, get_test_redis)
-
-
-@pytest.fixture
-def get_profile_object():
-    return faker.Faker().simple_profile()
-
-
-def info(item):
-    print(item)
-    assert False

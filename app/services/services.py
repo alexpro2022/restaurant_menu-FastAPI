@@ -6,10 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_aioredis, get_async_session
 from app.models import Dish, Menu, Submenu
-from app.repository import crud
-from app.repository import redis as r
+from app.repositories import db_repository
+from app.repositories import redis_repository as r
 
-from ..repository import base as repo
+from ..repositories import base_db_repository as repo
 from .base import BaseService
 
 async_session = typing.Annotated[AsyncSession, Depends(get_async_session)]
@@ -25,7 +25,7 @@ class MenuService(BaseService):
 
     def __init__(self, session: async_session, redis: redis):
         self.model_name = self.model_name.lower()
-        super().__init__(crud.MenuRepository(session), r.BaseRedis(redis, self.model_name))
+        super().__init__(db_repository.MenuRepository(session), r.BaseRedis(redis, self.model_name))
         self.submenu_redis = r.BaseRedis(redis, 'submenu')
         self.dish_redis = r.BaseRedis(redis, 'dish')
 
@@ -64,8 +64,8 @@ class SubmenuService(BaseService):
 
     def __init__(self, session: async_session, redis: redis):
         self.model_name = self.model_name.lower()
-        super().__init__(crud.SubmenuRepository(session), r.BaseRedis(redis, self.model_name))
-        self.menu_db = crud.MenuRepository(session)
+        super().__init__(db_repository.SubmenuRepository(session), r.BaseRedis(redis, self.model_name))
+        self.menu_db = db_repository.MenuRepository(session)
         self.menu_redis = r.BaseRedis(redis, 'menu')
         self.dish_redis = r.BaseRedis(redis, 'dish')
 
@@ -104,10 +104,10 @@ class DishService(BaseService):
 
     def __init__(self, session: async_session, redis: redis):
         self.model_name = self.model_name.lower()
-        super().__init__(crud.DishRepository(session), r.BaseRedis(redis, self.model_name))
-        self.submenu_db = crud.SubmenuRepository(session)
+        super().__init__(db_repository.DishRepository(session), r.BaseRedis(redis, self.model_name))
+        self.submenu_db = db_repository.SubmenuRepository(session)
         self.submenu_redis = r.BaseRedis(redis, 'submenu')
-        self.menu_db = crud.MenuRepository(session)
+        self.menu_db = db_repository.MenuRepository(session)
         self.menu_redis = r.BaseRedis(redis, 'menu')
 
     async def create(self,  # type: ignore [override]

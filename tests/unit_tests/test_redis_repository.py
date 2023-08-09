@@ -2,7 +2,7 @@ from time import sleep
 
 import pytest_asyncio
 
-from app.repository.redis import BaseRedis
+from app.repositories.redis_repository import BaseRedis
 
 from ..conftest import pytest_mark_anyio
 

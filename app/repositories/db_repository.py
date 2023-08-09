@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Dish, Menu, Submenu
 
-from .base import CRUDBaseRepository
+from .base_db_repository import CRUDBaseRepository
 
 
 class CRUDRepository(CRUDBaseRepository):

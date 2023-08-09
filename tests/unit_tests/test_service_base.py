@@ -2,8 +2,8 @@ import pytest
 from aioredis import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.repository.base import CRUDBaseRepository
-from app.repository.redis import BaseRedis
+from app.repositories.base_db_repository import CRUDBaseRepository
+from app.repositories.redis_repository import BaseRedis
 from app.services.services import BaseService
 
 from ..conftest import pytest_mark_anyio

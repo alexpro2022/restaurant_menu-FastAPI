@@ -2,7 +2,7 @@ import pickle
 
 from aioredis import Redis
 
-from .base import ModelType
+from .base_db_repository import ModelType
 
 serializer = pickle
 
