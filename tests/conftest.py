@@ -54,9 +54,8 @@ async def init_db():
 def get_test_redis() -> Generator:
     yield aioredis.FakeRedis()
 
+
 # --- Fixtures for endpoints testing -----------------------------------------------
-
-
 @pytest_asyncio.fixture
 async def async_client() -> AsyncGenerator[AsyncClient, Any]:
     async with AsyncClient(app=app, base_url='http://test') as ac:

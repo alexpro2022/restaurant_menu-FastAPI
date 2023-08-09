@@ -12,7 +12,7 @@ serializer = pickle
 class BaseRedis:
     def __init__(self,
                  redis: Redis | None = None,
-                 redis_key_prefix: str | None = None) -> None:
+                 redis_key_prefix: str = '') -> None:
         self.redis = redis
         self.redis_key_prefix = redis_key_prefix
 

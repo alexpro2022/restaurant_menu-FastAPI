@@ -2,27 +2,18 @@ from typing import Any
 
 import pytest
 from fastapi import HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..conftest import Base, CRUDBaseRepository, pytest_mark_anyio
-
-
-class Model(Base):
-    pass
-
-
-class Schema(BaseModel):
-    title: str
-    description: str
+from ..fixtures import data as d
 
 
 class CRUD(CRUDBaseRepository):
 
-    def is_update_allowed(self, obj: Model | None, payload: dict | None) -> None:
+    def is_update_allowed(self, obj: d.Model | None, payload: dict | None) -> None:
         pass
 
-    def is_delete_allowed(self, obj: Model | None) -> None:
+    def is_delete_allowed(self, obj: d.Model | None) -> None:
         pass
 
     def perform_create(self, create_data: dict, extra_data: Any | None = None) -> None:
@@ -35,10 +26,10 @@ class CRUD(CRUDBaseRepository):
         return obj
 
 
-class TestCRUDBaseRepositoryClass:
+class TestCRUDBaseRepository:
     """Тестовый класс для тестирования базового CRUD класса."""
-    model = Model
-    schema = Schema
+    model = d.Model
+    schema = d.Schema
     field_names = ('id', 'title', 'description')
     post_payload = {'title': 'My object', 'description': 'My object description'}
     update_payload = {'title': 'My updated object', 'description': 'My updated object description'}
@@ -49,6 +40,12 @@ class TestCRUDBaseRepositoryClass:
     # base crud with implemented middle methods
     crud_base_implemented: CRUD
     session: AsyncSession
+
+    @pytest.fixture
+    def setup_method(self, get_test_session):
+        self.session = get_test_session
+        self.crud_base_not_implemented = CRUDBaseRepository(self.model, self.session)
+        self.crud_base_implemented = CRUD(self.model, self.session)
 
     def _check_exc_info(self, exc_info, expected_msg: str, expected_error_code: int | None = None) -> None:
         if expected_error_code is None:
@@ -71,28 +68,21 @@ class TestCRUDBaseRepositoryClass:
 
     def _get_method(self, instance: CRUDBaseRepository, method_name: str):
         method = instance.__getattribute__(method_name)
-        assert isinstance(method, type(instance.__init__))
+        assert isinstance(method, type(instance.__init__))  # type: ignore [misc]
         return method
 
     async def _create_object(self,) -> Base:
         return await self.crud_base_not_implemented._save(self.model(**self.post_payload))
 
-    async def _get_all(self) -> Base:
+    async def _get_all(self) -> list | None:
         return await self.crud_base_not_implemented.get_all()
 
-    def setup_method(self, session):
-        self.session = session
-        self.crud_base_not_implemented = CRUDBaseRepository(Model, session)
-        self.crud_base_implemented = CRUD(Model, session)
-
     @pytest_mark_anyio
-    async def test_save(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_save(self, setup_method):
         self._check_obj(await self._create_object())
 
     @pytest_mark_anyio
-    async def test_save_exception(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_save_exception(self, setup_method):
         # first time saves object
         await self._create_object()
         # second attempt to save object with the same attrs raises IntegrityError
@@ -102,8 +92,7 @@ class TestCRUDBaseRepositoryClass:
 
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('_get_all_by_attrs', '_get_by_attrs'))
-    async def test_get_by_methods(self, get_test_session, method_name):
-        self.setup_method(get_test_session)
+    async def test_get_by_methods(self, setup_method, method_name):
         method = self._get_method(self.crud_base_not_implemented, method_name)
         # returns None if NOT_FOUND and exception=False by default
         assert await method(title=self.post_payload['title']) is None
@@ -117,16 +106,14 @@ class TestCRUDBaseRepositoryClass:
         self._check_obj(result) if method_name == '_get_by_attrs' else self._check_obj(result[0])
 
     @pytest_mark_anyio
-    async def test_get(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_get(self, setup_method):
         method = self.crud_base_not_implemented.get
         assert await method(1) is None
         await self._create_object()
         self._check_obj(await method(1))
 
     @pytest_mark_anyio
-    async def test_get_or_404(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_get_or_404(self, setup_method):
         method = self.crud_base_not_implemented.get_or_404
         with pytest.raises(HTTPException) as exc_info:
             await method(1)
@@ -135,8 +122,7 @@ class TestCRUDBaseRepositoryClass:
         self._check_obj(await method(1))
 
     @pytest_mark_anyio
-    async def test_get_all(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_get_all(self, setup_method):
         method = self.crud_base_not_implemented.get_all
         assert await method() is None
         with pytest.raises(HTTPException) as exc_info:
@@ -154,31 +140,27 @@ class TestCRUDBaseRepositoryClass:
         ('perform_create', (None, None), 'perform_create() must be implemented.'),
         ('perform_update', (None, None), 'perform_update() must be implemented.'),
     ))
-    def test_not_implemented_exception(self, method_name, args, expected_msg, get_test_session):
-        self.setup_method(get_test_session)
+    def test_not_implemented_exception(self, method_name, args, expected_msg, setup_method):
         with pytest.raises(NotImplementedError) as exc_info:
             self._get_method(self.crud_base_not_implemented, method_name)(*args)
         self._check_exc_info(exc_info, expected_msg)
 
     @pytest_mark_anyio
-    async def test_create_method_raises_not_implemeted_exception(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_create_method_raises_not_implemeted_exception(self, setup_method):
         method = self.crud_base_not_implemented.create
         with pytest.raises(NotImplementedError) as exc_info:
             await method(self.schema(**self.post_payload), extra_data='')
         self._check_exc_info(exc_info, 'perform_create() must be implemented.')
 
     @pytest_mark_anyio
-    async def test_create_method(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_create_method(self, setup_method):
         assert await self._get_all() is None
         created = await self.crud_base_not_implemented.create(self.schema(**self.post_payload))
         assert len(await self._get_all()) == 1
         self._compare_obj_payload(created, self.post_payload)
 
     @pytest_mark_anyio
-    async def test_perform_create_method(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_perform_create_method(self, setup_method):
         EXTRA_DATA = 'extra-data'
         assert await self._get_all() is None
         created = await self.crud_base_implemented.create(self.schema(**self.post_payload), extra_data=EXTRA_DATA)
@@ -189,8 +171,7 @@ class TestCRUDBaseRepositoryClass:
 
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('update', 'delete'))
-    async def test_update_delete_raise_not_found_exceptions(self, get_test_session, method_name):
-        self.setup_method(get_test_session)
+    async def test_update_delete_raise_not_found_exceptions(self, setup_method, method_name):
         method = self._get_method(self.crud_base_not_implemented, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
         with pytest.raises(HTTPException) as exc_info:
@@ -199,8 +180,7 @@ class TestCRUDBaseRepositoryClass:
 
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('update', 'delete'))
-    async def test_update_delete_raise_has_permission_exceptions(self, get_test_session, method_name):
-        self.setup_method(get_test_session)
+    async def test_update_delete_raise_has_permission_exceptions(self, setup_method, method_name):
         method = self._get_method(self.crud_base_not_implemented, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
         await self._create_object()
@@ -213,8 +193,7 @@ class TestCRUDBaseRepositoryClass:
         ('update', 'is_update_allowed() must be implemented.'),
         ('delete', 'is_delete_allowed() must be implemented.'),
     ))
-    async def test_update_delete_raises_is_allowed_exceptions(self, get_test_session, method_name, expected_msg):
-        self.setup_method(get_test_session)
+    async def test_update_delete_raises_is_allowed_exceptions(self, setup_method, method_name, expected_msg):
         method = self._get_method(self.crud_base_not_implemented, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
         await self._create_object()
@@ -223,24 +202,21 @@ class TestCRUDBaseRepositoryClass:
         self._check_exc_info(exc_info, expected_msg)
 
     @pytest_mark_anyio
-    async def test_delete_method(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_delete_method(self, setup_method):
         created = await self._create_object()
         assert len(await self._get_all()) == 1
         await self.crud_base_implemented.delete(created.id)
         assert await self._get_all() is None
 
     @pytest_mark_anyio
-    async def test_update_method(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_update_method(self, setup_method):
         obj = await self._create_object()
         self._compare_obj_payload(obj, self.post_payload)
         upd = await self.crud_base_implemented.update(obj.id, self.schema(**self.update_payload))
         self._compare_obj_payload(obj, self.update_payload)
 
     @pytest_mark_anyio
-    async def test_perform_update_method(self, get_test_session):
-        self.setup_method(get_test_session)
+    async def test_perform_update_method(self, setup_method):
         obj = await self._create_object()
         await self.crud_base_implemented.update(obj.id, self.schema(**self.update_payload.copy()), perform_update=True)
         assert obj.description == self.update_payload['description']

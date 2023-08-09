@@ -1,3 +1,17 @@
+from pydantic import BaseModel
+
+from ..conftest import Base
+
+
+class Model(Base):
+    pass
+
+
+class Schema(BaseModel):
+    title: str
+    description: str
+
+
 # Endpoints
 ID = 1
 PREFIX = '/api/v1/'
