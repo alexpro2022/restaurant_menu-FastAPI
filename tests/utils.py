@@ -1,3 +1,5 @@
+import typing
+
 from .fixtures import data as d
 from .fixtures.endpoints_testlib import DONE
 
@@ -70,3 +72,9 @@ def get_crud(endpoint, *, menu_crud, submenu_crud, dish_crud):
     elif 'submenus' in res:
         return submenu_crud
     return menu_crud
+
+
+def get_method(instance: typing.Any, method_name: str):
+    method = instance.__getattribute__(method_name)
+    assert isinstance(method, type(instance.__init__))
+    return method

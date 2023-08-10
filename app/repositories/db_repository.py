@@ -7,11 +7,11 @@ from .base_db_repository import CRUDBaseRepository
 
 class CRUDRepository(CRUDBaseRepository):
     # the methods are not in use in the project
-    def is_update_allowed(self, obj, payload) -> None:
-        pass
+    def is_update_allowed(self, obj=None, payload=None) -> bool:  # type: ignore [override]
+        return True
 
-    def is_delete_allowed(self, obj) -> None:
-        pass
+    def is_delete_allowed(self, obj=None) -> bool:  # type: ignore [override]
+        return True
 
 
 class MenuRepository(CRUDRepository):

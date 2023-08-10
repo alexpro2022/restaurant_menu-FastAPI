@@ -4,8 +4,8 @@ import pytest
 import pytest_asyncio
 
 from app.repositories.redis_repository import RedisBaseRepository
-
-from ..conftest import pytest_mark_anyio
+from tests.conftest import pytest_mark_anyio
+from tests.utils import get_method
 
 
 class TestBaseRedis:
@@ -43,14 +43,25 @@ class TestBaseRedis:
         for c in left.__table__.columns:
             assert getattr(left, c.key) == getattr(right, c.key)
 
+    @pytest.mark.parametrize('method_name, method_param', (
+        ('get_all', None),
+        ('get_obj', 1),
+        ('set_obj', 'obj_from_db'),
+        ('set_all', '[obj_from_db]'),
+        ('delete_obj', 'obj_from_db'),
+    ))
     @pytest_mark_anyio
-    async def test_methods_return_None(self, init, obj_from_db):
-        assert await self.redis.get_all() is None
-        assert await self.redis.get_obj(1) is None
-        assert await self.redis.get_obj(None) is None
-        assert await self.redis.set_obj(obj_from_db) is None
-        assert await self.redis.delete_obj(obj_from_db) is None
-        assert await self.redis.set_all([obj_from_db]) is None
+    async def test_methods_return_None(self, init, obj_from_db, method_name, method_param):
+        method = get_method(self.redis, method_name)
+        match method_param:
+            case None:
+                assert await method() is None
+            case 'obj_from_db':
+                assert await method(obj_from_db) is None
+            case '[obj_from_db]':
+                assert await method([obj_from_db]) is None
+            case _:
+                assert await method(method_param) is None
 
     @pytest_mark_anyio
     async def test_get_all_returns_list_objs(self, init, obj_from_db, set_obj_get_from_redis):

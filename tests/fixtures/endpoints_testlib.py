@@ -24,7 +24,7 @@ def assert_msg(response: Response, expected_msg: str | None) -> None:
         assert response_json == {'detail': expected_msg}, f'\n   {response_json} {expected_msg}'
 
 
-def get_invalid(item: int | str | dict) -> tuple[int | str | dict]:
+def get_invalid(item):
     invalid_str = (None, '', ' ', '-invalid-')
     if isinstance(item, int):
         return 0, -1, 10**12
@@ -41,7 +41,7 @@ def get_invalid(item: int | str | dict) -> tuple[int | str | dict]:
         return None, *dicts
 
 
-def strip_slashes(item: str) -> str:
+def strip_slashes(item: str | None) -> str:
     if item is None or not len(item):
         return ''
     slash = '/'
@@ -64,7 +64,9 @@ def create_endpoint(endpoint: str | None, path_param: int | str | None = None) -
         path = f'/{strip_slashes(endpoint)}/{strip_slashes(str(path_param))}'
     else:
         path = f'/{strip_slashes(endpoint)}'
-    return '' if set(path) == set('/') else path
+    if path == '/' or set(path) == set('/'):
+        return ''
+    return path[:-1] if path[-1] == '/' else path
 
 
 async def get_response(
@@ -157,32 +159,32 @@ async def standard_tests(
     # invalid_endpoint_test -----------------------------------------------------------------------------------
     for invalid_endpoint in get_invalid(endpoint):
         await assert_response(
-            HTTPStatus.NOT_FOUND, client, method, invalid_endpoint, path_param=path_param, params=params, json=json, data=data, headers=headers)
+            HTTPStatus.NOT_FOUND, client, method, invalid_endpoint, path_param=path_param, params=params, json=json, data=data, headers=headers)  # type: ignore [arg-type]
 
     # invalid_path_param_test -----------------------------------------------------------------------------------
     if path_param is not None:
         for invalid_path_param in get_invalid(path_param):
             r = await assert_response(
-                HTTPStatus.NOT_FOUND, client, method, endpoint, path_param=invalid_path_param, params=params, json=json, data=data, headers=headers)
+                HTTPStatus.NOT_FOUND, client, method, endpoint, path_param=invalid_path_param, params=params, json=json, data=data, headers=headers)  # type: ignore [arg-type]
             assert_msg(r, msg_not_found)
 
     # invalid_query_params_keys_test -----------------------------------------------------------------------------------
     if params is not None and check_params:
         for invalid_params_keys in get_invalid(params):
             await assert_response(
-                HTTPStatus.UNPROCESSABLE_ENTITY, client, method, endpoint, path_param=path_param, params=invalid_params_keys, json=json, data=data, headers=headers)
+                HTTPStatus.UNPROCESSABLE_ENTITY, client, method, endpoint, path_param=path_param, params=invalid_params_keys, json=json, data=data, headers=headers)  # type: ignore [arg-type]
 
     # invalid_payload_keys_test -----------------------------------------------------------------------------------
     if json is not None and check_json:
         for invalid_json_keys in get_invalid(json):
             await assert_response(
-                HTTPStatus.UNPROCESSABLE_ENTITY, client, method, endpoint, path_param=path_param, params=params, json=invalid_json_keys, data=data, headers=headers)
+                HTTPStatus.UNPROCESSABLE_ENTITY, client, method, endpoint, path_param=path_param, params=params, json=invalid_json_keys, data=data, headers=headers)  # type: ignore [arg-type]
 
     # invalid_form_keys_test -----------------------------------------------------------------------------------
     if data is not None and check_data:
         for invalid_data_keys in get_invalid(data):
             await assert_response(
-                HTTPStatus.UNPROCESSABLE_ENTITY, client, method, endpoint, path_param=path_param, params=params, json=json, data=invalid_data_keys, headers=headers)
+                HTTPStatus.UNPROCESSABLE_ENTITY, client, method, endpoint, path_param=path_param, params=params, json=json, data=invalid_data_keys, headers=headers)  # type: ignore [arg-type]
 
 
 async def not_allowed_methods_test(

@@ -2,7 +2,7 @@ import pytest
 
 from ..fixtures import endpoints_testlib as lib
 
-SLASHLESS = ''  # SLASHLESS'
+SLASHLESS = 'SLASHLESS'
 
 
 def test_dummy_func():

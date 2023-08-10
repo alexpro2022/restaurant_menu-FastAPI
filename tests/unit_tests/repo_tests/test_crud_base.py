@@ -4,8 +4,9 @@ import pytest
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..conftest import Base, CRUDBaseRepository, pytest_mark_anyio
-from ..fixtures import data as d
+from tests.conftest import Base, CRUDBaseRepository, pytest_mark_anyio
+from tests.fixtures import data as d
+from tests.utils import get_method
 
 
 class CRUD(CRUDBaseRepository):
@@ -64,11 +65,6 @@ class TestCRUDBaseRepository:
         assert obj.title == payload['title'], (obj.title, payload['title'])
         assert obj.description == payload['description'], (obj.description, payload['description'])
 
-    def _get_method(self, instance: CRUDBaseRepository, method_name: str):
-        method = instance.__getattribute__(method_name)
-        assert isinstance(method, type(instance.__init__))  # type: ignore [misc]
-        return method
-
     async def _get_all(self) -> list | None:
         return await self.crud_base_not_implemented.get_all()
 
@@ -93,7 +89,7 @@ class TestCRUDBaseRepository:
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('_get_all_by_attrs', '_get_by_attrs'))
     async def test_get_by_methods(self, setup_method, method_name):
-        method = self._get_method(self.crud_base_not_implemented, method_name)
+        method = get_method(self.crud_base_not_implemented, method_name)
         # returns None if NOT_FOUND and exception=False by default
         assert await method(title=self.post_payload['title']) is None
         # raises HTTPException if NOT_FOUND and exception=True
@@ -142,7 +138,7 @@ class TestCRUDBaseRepository:
     ))
     def test_not_implemented_exception(self, method_name, args, expected_msg, setup_method):
         with pytest.raises(NotImplementedError) as exc_info:
-            self._get_method(self.crud_base_not_implemented, method_name)(*args)
+            get_method(self.crud_base_not_implemented, method_name)(*args)
         self._check_exc_info(exc_info, expected_msg)
 
     @pytest_mark_anyio
@@ -172,7 +168,7 @@ class TestCRUDBaseRepository:
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('update', 'delete'))
     async def test_update_delete_raise_not_found_exceptions(self, setup_method, method_name):
-        method = self._get_method(self.crud_base_not_implemented, method_name)
+        method = get_method(self.crud_base_not_implemented, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
         with pytest.raises(HTTPException) as exc_info:
             await method(*args)
@@ -181,7 +177,7 @@ class TestCRUDBaseRepository:
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('update', 'delete'))
     async def test_update_delete_raise_has_permission_exceptions(self, setup_method, method_name):
-        method = self._get_method(self.crud_base_not_implemented, method_name)
+        method = get_method(self.crud_base_not_implemented, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
         await self._create_object()
         with pytest.raises(NotImplementedError) as exc_info:
@@ -194,7 +190,7 @@ class TestCRUDBaseRepository:
         ('delete', 'is_delete_allowed() must be implemented.'),
     ))
     async def test_update_delete_raises_is_allowed_exceptions(self, setup_method, method_name, expected_msg):
-        method = self._get_method(self.crud_base_not_implemented, method_name)
+        method = get_method(self.crud_base_not_implemented, method_name)
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
         await self._create_object()
         with pytest.raises(NotImplementedError) as exc_info:
