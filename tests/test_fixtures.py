@@ -1,11 +1,18 @@
 import asyncio
 
-import pytest
 from fakeredis import aioredis
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .conftest import DishService, MenuService, SubmenuService, pytest_mark_anyio
+from .conftest import (
+    DishRepository,
+    DishService,
+    MenuRepository,
+    MenuService,
+    SubmenuRepository,
+    SubmenuService,
+    pytest_mark_anyio,
+)
 
 
 @pytest_mark_anyio
@@ -63,12 +70,24 @@ def test_get_test_session(get_test_session):
 
 
 def test_get_menu_crud(get_menu_crud):
-    assert isinstance(get_menu_crud, MenuService)
+    assert isinstance(get_menu_crud, MenuRepository)
+
+
+def test_get_menu_service(get_menu_service):
+    assert isinstance(get_menu_service, MenuService)
 
 
 def test_get_submenu_crud(get_submenu_crud):
-    assert isinstance(get_submenu_crud, SubmenuService)
+    assert isinstance(get_submenu_crud, SubmenuRepository)
+
+
+def test_get_submenu_service(get_submenu_service):
+    assert isinstance(get_submenu_service, SubmenuService)
 
 
 def test_get_dish_crud(get_dish_crud):
-    assert isinstance(get_dish_crud, DishService)
+    assert isinstance(get_dish_crud, DishRepository)
+
+
+def test_get_dish_service(get_dish_service):
+    assert isinstance(get_dish_service, DishService)

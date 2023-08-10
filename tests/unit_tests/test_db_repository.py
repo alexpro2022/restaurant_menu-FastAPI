@@ -1,3 +1,7 @@
+"""
+The file needs to be removed as this is a testing of services and NOT a repositories
+"""
+'''
 from ..conftest import pytest_mark_anyio
 from ..fixtures import data as d
 
@@ -14,3 +18,4 @@ async def test_delete_submenu(submenu, get_submenu_crud):
 
 async def test_delete_dish(dish, get_dish_crud):
     assert await get_dish_crud.delete(dish.json()['id']) == d.DELETED_DISH
+'''

@@ -6,10 +6,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_aioredis, get_async_session
 from app.models import Dish, Menu, Submenu
-from app.repositories import db_repository
-from app.repositories import redis_repository as r
+from app.repositories.base_db_repository import ModelType
+from app.repositories.db_repository import (
+    DishRepository,
+    MenuRepository,
+    SubmenuRepository,
+)
+from app.repositories.redis_repository import RedisBaseRepository
 
-from ..repositories import base_db_repository as repo
 from .base import BaseService
 
 async_session = typing.Annotated[AsyncSession, Depends(get_async_session)]
@@ -25,9 +29,9 @@ class MenuService(BaseService):
 
     def __init__(self, session: async_session, redis: redis):
         self.model_name = self.model_name.lower()
-        super().__init__(db_repository.MenuRepository(session), r.BaseRedis(redis, self.model_name))
-        self.submenu_redis = r.BaseRedis(redis, 'submenu')
-        self.dish_redis = r.BaseRedis(redis, 'dish')
+        super().__init__(MenuRepository(session), RedisBaseRepository(redis, self.model_name))
+        self.submenu_redis = RedisBaseRepository(redis, 'submenu')
+        self.dish_redis = RedisBaseRepository(redis, 'dish')
 
     async def get_all(self, exception: bool = False) -> list:
         menus: list[Menu] | None = await super().get_all(exception)
@@ -35,7 +39,7 @@ class MenuService(BaseService):
 
     async def create(self,  # type: ignore [override]
                      payload: typing.Any,
-                     extra_data: typing.Any | None = None) -> repo.ModelType:
+                     extra_data: typing.Any | None = None) -> ModelType:
         # creation in db and redis
         menu: Menu = await super().create(payload, extra_data)
         await self.redis.set_obj(menu)
@@ -43,7 +47,7 @@ class MenuService(BaseService):
 
     async def update(self,  # type: ignore [override]
                      pk: int,
-                     payload: typing.Any) -> repo.ModelType:
+                     payload: typing.Any) -> ModelType:
         menu: Menu = await super().update(pk, payload)
         await self.redis.set_obj(menu)
         return menu
@@ -64,14 +68,14 @@ class SubmenuService(BaseService):
 
     def __init__(self, session: async_session, redis: redis):
         self.model_name = self.model_name.lower()
-        super().__init__(db_repository.SubmenuRepository(session), r.BaseRedis(redis, self.model_name))
-        self.menu_db = db_repository.MenuRepository(session)
-        self.menu_redis = r.BaseRedis(redis, 'menu')
-        self.dish_redis = r.BaseRedis(redis, 'dish')
+        super().__init__(SubmenuRepository(session), RedisBaseRepository(redis, self.model_name))
+        self.menu_db = MenuRepository(session)
+        self.menu_redis = RedisBaseRepository(redis, 'menu')
+        self.dish_redis = RedisBaseRepository(redis, 'dish')
 
     async def create(self,  # type: ignore [override]
                      payload: typing.Any,
-                     extra_data: typing.Any | None = None) -> repo.ModelType:
+                     extra_data: typing.Any | None = None) -> ModelType:
         # creation in db
         submenu: Submenu = await super().create(payload, extra_data)
         # creation in redis and refreshing related models
@@ -82,7 +86,7 @@ class SubmenuService(BaseService):
 
     async def update(self,  # type: ignore [override]
                      pk: int,
-                     payload: typing.Any) -> repo.ModelType:
+                     payload: typing.Any) -> ModelType:
         submenu: Submenu = await super().update(pk, payload)
         await self.redis.set_obj(submenu)
         return submenu
@@ -104,15 +108,15 @@ class DishService(BaseService):
 
     def __init__(self, session: async_session, redis: redis):
         self.model_name = self.model_name.lower()
-        super().__init__(db_repository.DishRepository(session), r.BaseRedis(redis, self.model_name))
-        self.submenu_db = db_repository.SubmenuRepository(session)
-        self.submenu_redis = r.BaseRedis(redis, 'submenu')
-        self.menu_db = db_repository.MenuRepository(session)
-        self.menu_redis = r.BaseRedis(redis, 'menu')
+        super().__init__(DishRepository(session), RedisBaseRepository(redis, self.model_name))
+        self.submenu_db = SubmenuRepository(session)
+        self.submenu_redis = RedisBaseRepository(redis, 'submenu')
+        self.menu_db = MenuRepository(session)
+        self.menu_redis = RedisBaseRepository(redis, 'menu')
 
     async def create(self,  # type: ignore [override]
                      payload: typing.Any,
-                     extra_data: typing.Any | None = None) -> repo.ModelType:
+                     extra_data: typing.Any | None = None) -> ModelType:
         # creation in db
         dish: Dish = await super().create(payload, extra_data)
         # creation in redis and refreshing related models
@@ -124,7 +128,7 @@ class DishService(BaseService):
 
     async def update(self,  # type: ignore [override]
                      pk: int,
-                     payload: typing.Any) -> repo.ModelType:
+                     payload: typing.Any) -> ModelType:
         dish: Dish = await super().update(pk, payload)
         await self.redis.set_obj(dish)
         return dish

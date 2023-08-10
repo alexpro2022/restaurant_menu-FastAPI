@@ -24,15 +24,18 @@ class CRUDBaseRepository(
                  session: AsyncSession):
         self.model = model
         self.session = session
+        self.order_by = self.model.id
 
 # === Read ===
+    def set_order_by(self, attr) -> None:
+        pass
+
     async def __get_by_attributes(
-        self, *, all: bool = True, order_by: str | None = None, **kwargs,
+        self, *, all: bool = False, **kwargs,
     ) -> list[ModelType] | ModelType | None:
-        # TODO: to make order_by
-        query = (select(self.model).filter_by(**kwargs) if kwargs  # try where instead of filter_by
-                 else select(self.model))  # .order_by(self.model.id)
-        result = await self.session.scalars(query.order_by(self.model.id))
+        query = (select(self.model).filter_by(**kwargs) if kwargs
+                 else select(self.model))
+        result = await self.session.scalars(query.order_by(self.order_by))
         return result.all() if all else result.first()
 
     async def _get_all_by_attrs(self, *, exception: bool = False, **kwargs
@@ -40,7 +43,7 @@ class CRUDBaseRepository(
         """Raises `NOT_FOUND` exception if
            no objects are found and `exception=True`
            else returns None else returns list of found objects."""
-        objects = await self.__get_by_attributes(**kwargs)
+        objects = await self.__get_by_attributes(all=True, **kwargs)
         if not objects:
             if exception:
                 raise HTTPException(status.HTTP_404_NOT_FOUND, self.NOT_FOUND)
@@ -51,7 +54,7 @@ class CRUDBaseRepository(
                             ) -> ModelType | None:
         """Raises `NOT_FOUND` exception if
            no object is found and `exception=True`."""
-        object = await self.__get_by_attributes(all=False, **kwargs)
+        object = await self.__get_by_attributes(**kwargs)
         if object is None and exception:
             raise HTTPException(status.HTTP_404_NOT_FOUND, self.NOT_FOUND)
         return object  # type: ignore
