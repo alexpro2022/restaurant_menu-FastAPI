@@ -56,3 +56,12 @@ class BaseService:
     async def delete(self, pk: int) -> ModelType:
         """Base class provides database delete method."""
         return await self.db.delete(pk)
+
+    async def set_cache_create(self):
+        raise NotImplementedError("Method or function hasn't been implemented yet.")
+
+    async def set_cache_update(self):
+        raise NotImplementedError("Method or function hasn't been implemented yet.")
+
+    async def set_cache_delete(self):
+        raise NotImplementedError("Method or function hasn't been implemented yet.")

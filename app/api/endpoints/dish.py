@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends
 
 from app import schemas, services
+from app.api.endpoints import utils as u
 from app.core import settings
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Dishes'])
@@ -32,7 +33,7 @@ async def get_all_(submenu_id: int,
     if not cache:
         background_tasks.add_task(submenu_crud.set_cache, submenu)
         background_tasks.add_task(dish_service.set_cache, submenu.dishes)
-    return submenu.dishes  # type: ignore
+    return submenu.dishes
 
 
 @router.post(
@@ -60,10 +61,7 @@ async def create_(submenu_id: int,
 async def get_(item_id: int,
                dish_service: dish_service,
                background_tasks: BackgroundTasks):
-    dish, cache = await dish_service.get_or_404(item_id)
-    if not cache:
-        background_tasks.add_task(dish_service.set_cache, dish)
-    return dish
+    return await u.get_item(item_id, dish_service, background_tasks)
 
 
 @router.patch(
@@ -75,9 +73,7 @@ async def update_(item_id: int,
                   payload: schemas.DishIn,
                   dish_service: dish_service,
                   background_tasks: BackgroundTasks):
-    dish = await dish_service.update(item_id, payload)
-    background_tasks.add_task(dish_service.set_cache, dish)
-    return dish
+    return await u.update(item_id, payload, dish_service, background_tasks)
 
 
 @router.delete(
@@ -87,6 +83,4 @@ async def update_(item_id: int,
 async def delete_(item_id: int,
                   dish_service: dish_service,
                   background_tasks: BackgroundTasks):
-    dish = await dish_service.delete(item_id)
-    background_tasks.add_task(dish_service.set_cache_delete, dish)
-    return {'status': True, 'message': 'The dish has been deleted'}
+    return await u.delete_(item_id, 'dish', dish_service, background_tasks)

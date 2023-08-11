@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, BackgroundTasks, Depends
 
 from app import schemas, services
+from app.api.endpoints import utils as u
 from app.core import settings
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
@@ -51,10 +52,7 @@ async def create_(payload: schemas.MenuIn,
 async def get_(item_id: int,
                menu_service: menu_service,
                background_tasks: BackgroundTasks):
-    menu, cache = await menu_service.get_or_404(item_id)
-    if not cache:
-        background_tasks.add_task(menu_service.set_cache, menu)
-    return menu
+    return await u.get_item(item_id, menu_service, background_tasks)
 
 
 @router.patch(
@@ -66,9 +64,7 @@ async def update_(item_id: int,
                   payload: schemas.MenuIn,
                   menu_service: menu_service,
                   background_tasks: BackgroundTasks):
-    menu = await menu_service.update(item_id, payload)
-    background_tasks.add_task(menu_service.set_cache, menu)
-    return menu
+    return await u.update(item_id, payload, menu_service, background_tasks)
 
 
 @router.delete(
@@ -78,6 +74,4 @@ async def update_(item_id: int,
 async def delete_(item_id: int,
                   menu_service: menu_service,
                   background_tasks: BackgroundTasks):
-    menu = await menu_service.delete(item_id)
-    background_tasks.add_task(menu_service.set_cache_delete, menu)
-    return {'status': True, 'message': 'The menu has been deleted'}
+    return await u.delete_(item_id, 'menu', menu_service, background_tasks)
