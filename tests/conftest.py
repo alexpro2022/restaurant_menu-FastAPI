@@ -19,6 +19,7 @@ from app.services import DishService, MenuService, SubmenuService
 from .fixtures import data as d
 
 pytest_mark_anyio = pytest.mark.asyncio
+# pytest_mark_anyio = pytest.mark.anyio
 
 engine = create_async_engine('sqlite+aiosqlite:///./test.db',
                              connect_args={'check_same_thread': False})

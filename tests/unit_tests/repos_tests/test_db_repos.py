@@ -20,7 +20,7 @@ class TestCRUDRepository:
     @pytest.mark.parametrize('method_name',
                              ('is_update_allowed', 'is_delete_allowed')
                              )
-    def test_is_allowed_methods_return_None(self, init, method_name):
+    def test_is_allowed_methods_return_True(self, init, method_name):
         method = get_method(self.crud, method_name)
         assert method() is True
 

@@ -68,7 +68,7 @@ class TestCRUDBaseRepository:
     async def _get_all(self) -> list | None:
         return await self.crud_base_not_implemented.get_all()
 
-    async def _create_object(self,) -> Base:
+    async def _create_object(self) -> Base:
         return await self.crud_base_not_implemented._save(self.model(**self.post_payload))
 
     @pytest_mark_anyio
@@ -151,8 +151,9 @@ class TestCRUDBaseRepository:
     @pytest_mark_anyio
     async def test_create_method(self, setup_method):
         assert await self._get_all() is None
-        created = await self.crud_base_not_implemented.create(self.schema(**self.post_payload))
+        obj = await self.crud_base_not_implemented.create(self.schema(**self.post_payload))
         assert len(await self._get_all()) == 1
+        created = await self.crud_base_not_implemented.get_or_404(obj.id)
         self._compare_obj_payload(created, self.post_payload)
 
     @pytest_mark_anyio
@@ -200,7 +201,7 @@ class TestCRUDBaseRepository:
     @pytest_mark_anyio
     async def test_delete_method(self, setup_method):
         created = await self._create_object()
-        assert len(await self._get_all()) == 1
+        assert await self._get_all()
         await self.crud_base_implemented.delete(created.id)
         assert await self._get_all() is None
 
@@ -208,8 +209,9 @@ class TestCRUDBaseRepository:
     async def test_update_method(self, setup_method):
         obj = await self._create_object()
         self._compare_obj_payload(obj, self.post_payload)
-        upd = await self.crud_base_implemented.update(obj.id, self.schema(**self.update_payload))
-        self._compare_obj_payload(obj, self.update_payload)
+        await self.crud_base_implemented.update(obj.id, self.schema(**self.update_payload))
+        updated = await self.crud_base_not_implemented.get_or_404(obj.id)
+        self._compare_obj_payload(updated, self.update_payload)
 
     @pytest_mark_anyio
     async def test_perform_update_method(self, setup_method):

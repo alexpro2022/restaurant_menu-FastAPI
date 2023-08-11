@@ -1,13 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 
-from app import models, schemas, services
+from app import schemas, services
 from app.core import settings
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Dishes'])
 
-dish = Annotated[services.DishService, Depends()]
+dish_service = Annotated[services.DishService, Depends()]
 submenu = Annotated[services.SubmenuService, Depends()]
 
 SUM_ALL_ITEMS = 'Выдача списка блюд'
@@ -22,9 +22,17 @@ SUM_DELETE_ITEM = 'Удаление блюда'
     response_model=list[schemas.DishOut] | list,
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
-async def get_all_(submenu_id: int, submenu_crud: submenu):
-    submenu = await submenu_crud.get(submenu_id)  # type: ignore
-    return [] if submenu is None else submenu.dishes  # type: ignore
+async def get_all_(submenu_id: int,
+                   submenu_crud: submenu,
+                   dish_service: dish_service,
+                   background_tasks: BackgroundTasks):
+    submenu, cache = await submenu_crud.get(submenu_id)  # type: ignore
+    if submenu is None:
+        return []
+    if not cache:
+        background_tasks.add_task(submenu_crud.set_cache, submenu)
+        background_tasks.add_task(dish_service.set_cache, submenu.dishes)
+    return submenu.dishes  # type: ignore
 
 
 @router.post(
@@ -33,14 +41,15 @@ async def get_all_(submenu_id: int, submenu_crud: submenu):
     response_model=schemas.DishOut,
     summary=SUM_CREATE_ITEM,
     description=(f'{settings.AUTH_ONLY} {SUM_CREATE_ITEM}'))
-async def create_(
-    submenu_id: int,
-    payload: schemas.DishIn,
-    submenu_crud: submenu,
-    crud: dish,
-):
-    submenu: models.Submenu = await submenu_crud.get_or_404(submenu_id)
-    return await crud.create(payload, extra_data=submenu.id)
+async def create_(submenu_id: int,
+                  payload: schemas.DishIn,
+                  submenu_service: submenu,
+                  dish_service: dish_service,
+                  background_tasks: BackgroundTasks):
+    submenu, _ = await submenu_service.get_or_404(submenu_id)
+    dish = await dish_service.create(payload, extra_data=submenu.id)
+    background_tasks.add_task(dish_service.set_cache_create, dish)
+    return dish
 
 
 @router.get(
@@ -48,8 +57,13 @@ async def create_(
     response_model=schemas.DishOut,
     summary=SUM_ITEM,
     description=(f'{settings.ALL_USERS} {SUM_ITEM}'))
-async def get_(item_id: int, crud: dish):
-    return await crud.get_or_404(item_id)
+async def get_(item_id: int,
+               dish_service: dish_service,
+               background_tasks: BackgroundTasks):
+    dish, cache = await dish_service.get_or_404(item_id)
+    if not cache:
+        background_tasks.add_task(dish_service.set_cache, dish)
+    return dish
 
 
 @router.patch(
@@ -57,13 +71,22 @@ async def get_(item_id: int, crud: dish):
     response_model=schemas.DishOut,
     summary=SUM_UPDATE_ITEM,
     description=(f'{settings.AUTH_ONLY} {SUM_UPDATE_ITEM}'))
-async def update_(item_id: int, payload: schemas.DishIn, crud: dish):
-    return await crud.update(item_id, payload)
+async def update_(item_id: int,
+                  payload: schemas.DishIn,
+                  dish_service: dish_service,
+                  background_tasks: BackgroundTasks):
+    dish = await dish_service.update(item_id, payload)
+    background_tasks.add_task(dish_service.set_cache, dish)
+    return dish
 
 
 @router.delete(
     '/{menu_id}/submenus/{submenu_id}/dishes/{item_id}',
     summary=SUM_DELETE_ITEM,
     description=(f'{settings.SUPER_ONLY} {SUM_DELETE_ITEM}'))
-async def delete_(item_id: int, crud: dish):
-    return await crud.delete(item_id)
+async def delete_(item_id: int,
+                  dish_service: dish_service,
+                  background_tasks: BackgroundTasks):
+    dish = await dish_service.delete(item_id)
+    background_tasks.add_task(dish_service.set_cache_delete, dish)
+    return {'status': True, 'message': 'The dish has been deleted'}

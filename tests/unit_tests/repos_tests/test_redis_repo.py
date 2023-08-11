@@ -5,7 +5,7 @@ import pytest_asyncio
 
 from app.repositories.redis_repository import RedisBaseRepository
 from tests.conftest import pytest_mark_anyio
-from tests.utils import get_method
+from tests.utils import compare, get_method
 
 
 class TestBaseRedis:
@@ -34,14 +34,14 @@ class TestBaseRedis:
     async def __set_obj(self, obj_from_db):
         assert await self.redis.set_obj(obj_from_db) is None
         obj = await self.redis.get_obj(obj_from_db.id)
-        self._compare(obj, obj_from_db)
+        compare(obj, obj_from_db)
         return obj
 
-    def _compare(self, left, right) -> None:
+    '''def _compare(self, left, right) -> None:
         assert self and right
         assert left.__table__.columns == right.__table__.columns
         for c in left.__table__.columns:
-            assert getattr(left, c.key) == getattr(right, c.key)
+            assert getattr(left, c.key) == getattr(right, c.key)'''
 
     @pytest.mark.parametrize('method_name, method_param', (
         ('get_all', None),
@@ -68,12 +68,12 @@ class TestBaseRedis:
         objs = await self.redis.get_all()
         assert isinstance(objs, list)
         for obj in objs:
-            self._compare(obj, obj_from_db)
+            compare(obj, obj_from_db)
 
     @pytest_mark_anyio
     async def test_get_obj_returns_obj(self, init, obj_from_db, set_obj_get_from_redis):
         obj = await self.redis.get_obj(obj_from_db.id)
-        self._compare(obj, obj_from_db)
+        compare(obj, obj_from_db)
 
     @pytest_mark_anyio
     async def test_set_obj_expire(self, init_expire, set_obj_get_from_redis):
@@ -100,7 +100,7 @@ class TestBaseRedis:
         assert await self.redis.set_all(lst) is None
         objs = await self.redis.get_all()
         assert len(objs) == len(lst)
-        self._compare(objs[0], obj_from_db)
+        compare(objs[0], obj_from_db)
 
     @pytest.mark.parametrize('suffix', (1, 1.2, '1', [1, 2], (1, 2), {1, 1, 2}, {'1': 300}))
     def test_get_key(self, init, suffix) -> None:

@@ -1,5 +1,6 @@
 import typing
 
+from .conftest import Base
 from .fixtures import data as d
 from .fixtures.endpoints_testlib import DONE
 
@@ -78,3 +79,10 @@ def get_method(instance: typing.Any, method_name: str):
     method = instance.__getattribute__(method_name)
     assert isinstance(method, type(instance.__init__))
     return method
+
+
+def compare(left: Base, right: Base) -> None:
+    assert left and right
+    assert left.__table__.columns == right.__table__.columns
+    for c in left.__table__.columns:
+        assert getattr(left, c.key) == getattr(right, c.key)
