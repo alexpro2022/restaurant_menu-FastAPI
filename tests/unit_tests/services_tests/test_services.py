@@ -1,7 +1,7 @@
-from tests.fixtures import data as d
+# from tests.fixtures import data as d
 
 
-async def
+# async def
 
 '''
 async def test_delete_menu(menu, get_menu_service):
