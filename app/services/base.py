@@ -11,6 +11,8 @@ from app.repositories.redis_repository import RedisBaseRepository
 
 
 class BaseService:
+    MSG_NOT_IMPLEMENTED = "Method or function hasn't been implemented yet."
+
     def __init__(self, db: CRUDBaseRepository, redis: RedisBaseRepository):
         self.db = db
         self.redis = redis
@@ -58,10 +60,10 @@ class BaseService:
         return await self.db.delete(pk)
 
     async def set_cache_create(self):
-        raise NotImplementedError("Method or function hasn't been implemented yet.")
+        raise NotImplementedError(self.MSG_NOT_IMPLEMENTED)
 
     async def set_cache_update(self):
-        raise NotImplementedError("Method or function hasn't been implemented yet.")
+        raise NotImplementedError(self.MSG_NOT_IMPLEMENTED)
 
     async def set_cache_delete(self):
-        raise NotImplementedError("Method or function hasn't been implemented yet.")
+        raise NotImplementedError(self.MSG_NOT_IMPLEMENTED)

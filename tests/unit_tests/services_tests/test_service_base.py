@@ -7,7 +7,7 @@ from app.services.services import BaseService
 from tests.conftest import info, pytest_mark_anyio
 from tests.fixtures import data as d
 from tests.unit_tests.repos_tests.test_base_crud import CRUD
-from tests.utils import compare
+from tests.utils import check_exception_info, compare, get_method
 
 pytestmark = pytest_mark_anyio
 
@@ -127,3 +127,9 @@ class TestBaseService:
         await self.base_service.delete(get_obj_from_db.id)
         assert await self._db_empty()
         assert await self._cache_empty()
+
+    @pytest.mark.parametrize('method_name', ('set_cache_create', 'set_cache_update', 'set_cache_delete'))
+    async def test_set_cache_xxx_raises_exc(self, init, method_name):
+        with pytest.raises(NotImplementedError) as exc_info:
+            await get_method(self.base_service, method_name)()
+        check_exception_info(exc_info, "Method or function hasn't been implemented yet.")

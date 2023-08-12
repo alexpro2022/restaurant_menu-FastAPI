@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import Base, CRUDBaseRepository, pytest_mark_anyio
 from tests.fixtures import data as d
-from tests.utils import get_method
+from tests.utils import check_exception_info, check_exception_info_not_found, get_method
 
 
 class CRUD(CRUDBaseRepository):
@@ -46,7 +46,7 @@ class TestCRUDBaseRepository:
         self.crud_base_not_implemented = CRUDBaseRepository(self.model, get_test_session)
         self.crud_base_implemented = CRUD(self.model, get_test_session)
 
-    def _check_exc_info(self, exc_info, expected_msg: str, expected_error_code: int | None = None) -> None:
+    '''def _check_exc_info(self, exc_info, expected_msg: str, expected_error_code: int | None = None) -> None:
         if expected_error_code is None:
             assert exc_info.value.args[0] == expected_msg
         else:
@@ -54,7 +54,7 @@ class TestCRUDBaseRepository:
                 assert exc_info.value.args[index] == item, (exc_info.value.args[index], item)
 
     def _check_exc_info_not_found(self, exc_info) -> None:
-        self._check_exc_info(exc_info, self.msg_not_found, status.HTTP_404_NOT_FOUND)
+        self._check_exc_info(exc_info, self.msg_not_found, status.HTTP_404_NOT_FOUND)'''
 
     def _check_obj(self, obj: Base) -> None:
         assert isinstance(obj, self.model)
@@ -84,7 +84,7 @@ class TestCRUDBaseRepository:
         # second attempt to save object with the same attrs raises IntegrityError
         with pytest.raises(HTTPException) as exc_info:
             await self._create_object()
-        self._check_exc_info(exc_info, self.msg_already_exists, status.HTTP_400_BAD_REQUEST)
+        check_exception_info(exc_info, self.msg_already_exists, status.HTTP_400_BAD_REQUEST)
 
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('_get_all_by_attrs', '_get_by_attrs'))
@@ -95,7 +95,7 @@ class TestCRUDBaseRepository:
         # raises HTTPException if NOT_FOUND and exception=True
         with pytest.raises(HTTPException) as exc_info:
             await method(title=self.post_payload['title'], exception=True)
-        self._check_exc_info_not_found(exc_info)
+        check_exception_info_not_found(exc_info, self.msg_not_found)
         # returns list of objects or object if FOUND
         await self._create_object()
         result = await method(title=self.post_payload['title'])
@@ -113,7 +113,7 @@ class TestCRUDBaseRepository:
         method = self.crud_base_not_implemented.get_or_404
         with pytest.raises(HTTPException) as exc_info:
             await method(1)
-        self._check_exc_info_not_found(exc_info)
+        check_exception_info_not_found(exc_info, self.msg_not_found)
         await self._create_object()
         self._check_obj(await method(1))
 
@@ -123,7 +123,7 @@ class TestCRUDBaseRepository:
         assert await method() is None
         with pytest.raises(HTTPException) as exc_info:
             await method(exception=True)
-        self._check_exc_info_not_found(exc_info)
+        check_exception_info_not_found(exc_info, self.msg_not_found)
         await self._create_object()
         objs = await method()
         assert isinstance(objs, list)
@@ -139,14 +139,14 @@ class TestCRUDBaseRepository:
     def test_not_implemented_exception(self, method_name, args, expected_msg, setup_method):
         with pytest.raises(NotImplementedError) as exc_info:
             get_method(self.crud_base_not_implemented, method_name)(*args)
-        self._check_exc_info(exc_info, expected_msg)
+        check_exception_info(exc_info, expected_msg)
 
     @pytest_mark_anyio
     async def test_create_method_raises_not_implemeted_exception(self, setup_method):
         method = self.crud_base_not_implemented.create
         with pytest.raises(NotImplementedError) as exc_info:
             await method(self.schema(**self.post_payload), extra_data='')
-        self._check_exc_info(exc_info, 'perform_create() must be implemented.')
+        check_exception_info(exc_info, 'perform_create() must be implemented.')
 
     @pytest_mark_anyio
     async def test_create_method(self, setup_method):
@@ -173,7 +173,7 @@ class TestCRUDBaseRepository:
         args = (1,) if method_name == 'delete' else (1, self.schema(**self.post_payload))
         with pytest.raises(HTTPException) as exc_info:
             await method(*args)
-        self._check_exc_info_not_found(exc_info)
+        check_exception_info_not_found(exc_info, self.msg_not_found)
 
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name', ('update', 'delete'))
@@ -183,7 +183,7 @@ class TestCRUDBaseRepository:
         await self._create_object()
         with pytest.raises(NotImplementedError) as exc_info:
             await method(*args, user=1)
-        self._check_exc_info(exc_info, 'has_permission() must be implemented.')
+        check_exception_info(exc_info, 'has_permission() must be implemented.')
 
     @pytest_mark_anyio
     @pytest.mark.parametrize('method_name, expected_msg', (
@@ -196,7 +196,7 @@ class TestCRUDBaseRepository:
         await self._create_object()
         with pytest.raises(NotImplementedError) as exc_info:
             await method(*args)
-        self._check_exc_info(exc_info, expected_msg)
+        check_exception_info(exc_info, expected_msg)
 
     @pytest_mark_anyio
     async def test_delete_method(self, setup_method):

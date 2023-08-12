@@ -1,21 +1,18 @@
-from typing import Annotated
+from fastapi import APIRouter, BackgroundTasks
 
-from fastapi import APIRouter, BackgroundTasks, Depends
-
-from app import schemas, services
+from app import schemas
 from app.api.endpoints import utils as u
 from app.core import settings
+from app.services import dish_service, submenu_service
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Dishes'])
 
-dish_service = Annotated[services.DishService, Depends()]
-submenu = Annotated[services.SubmenuService, Depends()]
-
-SUM_ALL_ITEMS = 'Выдача списка блюд'
-SUM_ITEM = 'Возвращает блюдо по ID'
-SUM_CREATE_ITEM = 'Создание нового блюда'
-SUM_UPDATE_ITEM = 'Редактирование блюда'
-SUM_DELETE_ITEM = 'Удаление блюда'
+NAME = 'блюда'
+SUM_ALL_ITEMS = u.SUM_ALL_ITEMS.format('блюд')
+SUM_ITEM = u.SUM_ITEM.format('блюдо')
+SUM_CREATE_ITEM = u.SUM_CREATE_ITEM.format(NAME)
+SUM_UPDATE_ITEM = u.SUM_UPDATE_ITEM.format(NAME)
+SUM_DELETE_ITEM = u.SUM_DELETE_ITEM.format(NAME)
 
 
 @router.get(
@@ -24,16 +21,10 @@ SUM_DELETE_ITEM = 'Удаление блюда'
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
 async def get_all_(submenu_id: int,
-                   submenu_crud: submenu,
+                   submenu_service: submenu_service,
                    dish_service: dish_service,
                    background_tasks: BackgroundTasks):
-    submenu, cache = await submenu_crud.get(submenu_id)  # type: ignore
-    if submenu is None:
-        return []
-    if not cache:
-        background_tasks.add_task(submenu_crud.set_cache, submenu)
-        background_tasks.add_task(dish_service.set_cache, submenu.dishes)
-    return submenu.dishes
+    return await u.get_all(submenu_id, submenu_service, dish_service, 'dishes', background_tasks)
 
 
 @router.post(
@@ -44,13 +35,11 @@ async def get_all_(submenu_id: int,
     description=(f'{settings.AUTH_ONLY} {SUM_CREATE_ITEM}'))
 async def create_(submenu_id: int,
                   payload: schemas.DishIn,
-                  submenu_service: submenu,
+                  submenu_service: submenu_service,
                   dish_service: dish_service,
                   background_tasks: BackgroundTasks):
     submenu, _ = await submenu_service.get_or_404(submenu_id)
-    dish = await dish_service.create(payload, extra_data=submenu.id)
-    background_tasks.add_task(dish_service.set_cache_create, dish)
-    return dish
+    return await u.create(submenu.id, payload, dish_service, background_tasks)
 
 
 @router.get(
@@ -83,4 +72,4 @@ async def update_(item_id: int,
 async def delete_(item_id: int,
                   dish_service: dish_service,
                   background_tasks: BackgroundTasks):
-    return await u.delete_(item_id, 'dish', dish_service, background_tasks)
+    return await u.delete(item_id, 'dish', dish_service, background_tasks)

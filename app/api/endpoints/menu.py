@@ -1,20 +1,18 @@
-from typing import Annotated
+from fastapi import APIRouter, BackgroundTasks
 
-from fastapi import APIRouter, BackgroundTasks, Depends
-
-from app import schemas, services
+from app import schemas
 from app.api.endpoints import utils as u
 from app.core import settings
+from app.services import menu_service
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
 
-menu_service = Annotated[services.MenuService, Depends()]
-
-SUM_ALL_ITEMS = 'Выдача списка меню'
-SUM_ITEM = 'Возвращает меню по ID'
-SUM_CREATE_ITEM = 'Создание нового меню'
-SUM_UPDATE_ITEM = 'Редактирование меню'
-SUM_DELETE_ITEM = 'Удаление меню'
+NAME = 'меню'
+SUM_ALL_ITEMS = u.SUM_ALL_ITEMS.format(NAME)
+SUM_ITEM = u.SUM_ITEM.format(NAME)
+SUM_CREATE_ITEM = u.SUM_CREATE_ITEM.format(NAME)
+SUM_UPDATE_ITEM = u.SUM_UPDATE_ITEM.format(NAME)
+SUM_DELETE_ITEM = u.SUM_DELETE_ITEM.format(NAME)
 
 
 @router.get(
@@ -39,9 +37,7 @@ async def get_all_(menu_service: menu_service,
 async def create_(payload: schemas.MenuIn,
                   menu_service: menu_service,
                   background_tasks: BackgroundTasks):
-    menu = await menu_service.create(payload)
-    background_tasks.add_task(menu_service.set_cache, menu)
-    return menu
+    return await u.create(-1, payload, menu_service, background_tasks)
 
 
 @router.get(
@@ -74,4 +70,4 @@ async def update_(item_id: int,
 async def delete_(item_id: int,
                   menu_service: menu_service,
                   background_tasks: BackgroundTasks):
-    return await u.delete_(item_id, 'menu', menu_service, background_tasks)
+    return await u.delete(item_id, 'menu', menu_service, background_tasks)

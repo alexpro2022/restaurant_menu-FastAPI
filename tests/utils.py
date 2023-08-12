@@ -1,8 +1,10 @@
 import typing
 
-from .conftest import Base
-from .fixtures import data as d
-from .fixtures.endpoints_testlib import DONE
+from fastapi import status
+
+from tests.conftest import Base
+from tests.fixtures import data as d
+from tests.fixtures.endpoints_testlib import DONE
 
 
 def _check_response(response_json: dict | list, expected_result: dict | list[dict]):
@@ -86,3 +88,15 @@ def compare(left: Base, right: Base) -> None:
     assert left.__table__.columns == right.__table__.columns
     for c in left.__table__.columns:
         assert getattr(left, c.key) == getattr(right, c.key)
+
+
+def check_exception_info(exc_info, expected_msg: str, expected_error_code: int | None = None) -> None:
+    if expected_error_code is None:
+        assert exc_info.value.args[0] == expected_msg
+    else:
+        for index, item in enumerate((expected_error_code, expected_msg)):
+            assert exc_info.value.args[index] == item, (exc_info.value.args[index], item)
+
+
+def check_exception_info_not_found(exc_info, msg_not_found) -> None:
+    check_exception_info(exc_info, msg_not_found, status.HTTP_404_NOT_FOUND)
