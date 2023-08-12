@@ -54,13 +54,6 @@ async def init_db():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture
-async def get_test_redis() -> AsyncGenerator[aioredis.FakeRedis, Any]:
-    r = aioredis.FakeRedis()
-    yield r
-    await r.flushall()
-
-
 # --- Fixtures for endpoints testing -----------------------------------------------
 @pytest_asyncio.fixture
 async def async_client() -> AsyncGenerator[AsyncClient, Any]:
@@ -99,18 +92,25 @@ async def get_test_session() -> AsyncGenerator[AsyncSession, Any]:
 
 
 @pytest_asyncio.fixture
-async def get_menu_crud(get_test_session, get_test_redis):
-    yield MenuService(get_test_session, get_test_redis).db
+async def get_menu_crud(get_test_session):
+    yield MenuRepository(get_test_session)
 
 
 @pytest_asyncio.fixture
-async def get_submenu_crud(get_test_session, get_test_redis):
-    yield SubmenuService(get_test_session, get_test_redis).db
+async def get_submenu_crud(get_test_session):
+    yield SubmenuRepository(get_test_session)
 
 
 @pytest_asyncio.fixture
-async def get_dish_crud(get_test_session, get_test_redis):
-    yield DishService(get_test_session, get_test_redis).db
+async def get_dish_crud(get_test_session):
+    yield DishRepository(get_test_session)
+
+
+@pytest_asyncio.fixture
+async def get_test_redis() -> AsyncGenerator[aioredis.FakeRedis, Any]:
+    r = aioredis.FakeRedis()
+    yield r
+    await r.flushall()
 
 
 @pytest_asyncio.fixture
@@ -126,13 +126,3 @@ async def get_submenu_service(get_test_session, get_test_redis):
 @pytest_asyncio.fixture
 async def get_dish_service(get_test_session, get_test_redis):
     yield DishService(get_test_session, get_test_redis)
-
-
-@pytest.fixture
-def get_profile_object():
-    return faker.Faker().simple_profile()
-
-
-def info(item):
-    print(item)
-    assert False

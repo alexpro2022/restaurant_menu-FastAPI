@@ -16,6 +16,7 @@ class Schema(BaseModel):
 ID = 1
 PREFIX = '/api/v1/'
 ENDPOINT_MENU = f'{PREFIX}menus'
+ENDPOINT_FULL_LIST = f'{ENDPOINT_MENU}-full-list'
 ENDPOINT_SUBMENU = f'{ENDPOINT_MENU}/{ID}/submenus'
 ENDPOINT_DISH = f'{ENDPOINT_SUBMENU}/{ID}/dishes'
 
@@ -89,3 +90,10 @@ UPDATED_DISH = {'id': '1',
                 'description': 'My updated dish description 1',
                 'price': '14.5'}
 DELETED_DISH = {'status': True, 'message': 'The dish has been deleted'}
+
+EXPECTED_FULL_LIST = [
+    {'title': 'My menu 1', 'id': 1, 'description': 'My menu description 1',
+     'submenus': [
+         {'menu_id': 1, 'description': 'My submenu description 1', 'title': 'My submenu 1', 'id': 1,
+          'dishes': [
+              {'price': 12.5, 'title': 'My dish 1', 'submenu_id': 1, 'id': 1, 'description': 'My dish description 1'}]}]}]

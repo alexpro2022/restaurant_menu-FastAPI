@@ -1,7 +1,7 @@
 from httpx import AsyncClient
 
-from ..conftest import Dish, Menu, Submenu, pytest_mark_anyio
-from ..fixtures import data as d
+from tests.conftest import Dish, Menu, Submenu, pytest_mark_anyio
+from tests.fixtures import data as d
 
 
 def _check_objs(objs: list, model, size: int = 1) -> None:

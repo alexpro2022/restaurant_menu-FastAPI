@@ -1,11 +1,13 @@
 import pytest
+from fastapi import status
 
-from .. import utils as u
-from ..conftest import pytest_mark_anyio
-from ..fixtures import data as d
-from ..fixtures.endpoints_testlib import not_allowed_methods_test, standard_tests
+from tests import utils as u
+from tests.conftest import pytest_mark_anyio
+from tests.fixtures import data as d
+from tests.fixtures.endpoints_testlib import not_allowed_methods_test, standard_tests
 
 DELETE, GET, POST, PUT, PATCH = 'DELETE', 'GET', 'POST', 'PUT', 'PATCH'
+DOUBLE_NONE = (None, None)
 
 pytestmark = pytest_mark_anyio
 
@@ -15,27 +17,30 @@ async def test_not_allowed_method(async_client, endpoint):
     await not_allowed_methods_test(async_client, (PUT,), endpoint)
 
 
-@pytest.mark.parametrize('endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU))
+@pytest.mark.parametrize('endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU, d.ENDPOINT_FULL_LIST))
 async def test_get_all_returns_empty_list(async_client, endpoint):
-    result = await async_client.get(endpoint)
-    assert result.json() == []
+    response = await async_client.get(endpoint)
+    assert response.status_code == status.HTTP_200_OK, response.json()
+    assert response.json() == []
 
 
 @pytest.mark.parametrize('method, endpoint, path_param, payload, msg_already_exists, msg_not_found, check_func', (
-    (GET, d.ENDPOINT_MENU, None, None, *d.MENU_MSG_PACK, u.check_menu_list),
+    (GET, d.ENDPOINT_MENU, *DOUBLE_NONE, *d.MENU_MSG_PACK, u.check_menu_list),
     (GET, d.ENDPOINT_MENU, d.ID, None, *d.MENU_MSG_PACK, u.check_menu),
     (PATCH, d.ENDPOINT_MENU, d.ID, d.MENU_PATCH_PAYLOAD, *d.MENU_MSG_PACK, u.check_menu_updated),
     (DELETE, d.ENDPOINT_MENU, d.ID, None, *d.MENU_MSG_PACK, u.check_menu_deleted),
     # -------------------------------------------------------------------------------------------------
-    (GET, d.ENDPOINT_SUBMENU, None, None, *d.SUBMENU_MSG_PACK, u.check_submenu_list),
+    (GET, d.ENDPOINT_SUBMENU, *DOUBLE_NONE, *d.SUBMENU_MSG_PACK, u.check_submenu_list),
     (GET, d.ENDPOINT_SUBMENU, d.ID, None, *d.SUBMENU_MSG_PACK, u.check_submenu),
     (PATCH, d.ENDPOINT_SUBMENU, d.ID, d.SUBMENU_PATCH_PAYLOAD, *d.SUBMENU_MSG_PACK, u.check_submenu_updated),
     (DELETE, d.ENDPOINT_SUBMENU, d.ID, None, *d.SUBMENU_MSG_PACK, u.check_submenu_deleted),
     # -------------------------------------------------------------------------------------------------
-    (GET, d.ENDPOINT_DISH, None, None, *d.DISH_MSG_PACK, u.check_dish_list),
+    (GET, d.ENDPOINT_DISH, *DOUBLE_NONE, *d.DISH_MSG_PACK, u.check_dish_list),
     (GET, d.ENDPOINT_DISH, d.ID, None, *d.DISH_MSG_PACK, u.check_dish),
     (PATCH, d.ENDPOINT_DISH, d.ID, d.DISH_PATCH_PAYLOAD, *d.DISH_MSG_PACK, u.check_dish_updated),
     (DELETE, d.ENDPOINT_DISH, d.ID, None, *d.DISH_MSG_PACK, u.check_dish_deleted),
+    # -------------------------------------------------------------------------------------------------
+    (GET, d.ENDPOINT_FULL_LIST, *DOUBLE_NONE, *DOUBLE_NONE, u.check_full_list),
 ))
 async def test_standard(dish, async_client, get_menu_crud, get_submenu_crud, get_dish_crud,
                         method, endpoint, path_param, payload, msg_already_exists, msg_not_found, check_func):

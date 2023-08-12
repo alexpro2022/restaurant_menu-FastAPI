@@ -1,4 +1,5 @@
 from fastapi import APIRouter, BackgroundTasks
+from fastapi.encoders import jsonable_encoder
 
 from app import schemas
 from app.api.endpoints import utils as u
@@ -13,6 +14,7 @@ SUM_ITEM = u.SUM_ITEM.format(NAME)
 SUM_CREATE_ITEM = u.SUM_CREATE_ITEM.format(NAME)
 SUM_UPDATE_ITEM = u.SUM_UPDATE_ITEM.format(NAME)
 SUM_DELETE_ITEM = u.SUM_DELETE_ITEM.format(NAME)
+SUM_FULL_LIST = f'Полный список {NAME}.'
 
 
 @router.get(
@@ -71,3 +73,14 @@ async def delete_(item_id: int,
                   menu_service: menu_service,
                   background_tasks: BackgroundTasks):
     return await u.delete(item_id, 'menu', menu_service, background_tasks)
+
+
+@router.get(
+    '-full-list',
+    response_model=list[dict],
+    summary=SUM_FULL_LIST,
+    description=(f'{settings.SUPER_ONLY} {SUM_FULL_LIST}'))
+async def get_full_list(menu_service: menu_service,
+                        background_tasks: BackgroundTasks):
+    return [jsonable_encoder(m) for m in
+            await get_all_(menu_service, background_tasks)]

@@ -68,6 +68,10 @@ def check_dish_deleted(response_json: dict):
     return _check_response(response_json, d.DELETED_DISH)
 
 
+def check_full_list(response_json: dict):
+    return _check_response(response_json, d.EXPECTED_FULL_LIST)
+
+
 def get_crud(endpoint, *, menu_crud, submenu_crud, dish_crud):
     res = endpoint.split('/')
     if 'dishes' in res:
