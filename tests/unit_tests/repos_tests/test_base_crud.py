@@ -5,25 +5,12 @@ from fastapi import HTTPException, status
 
 from tests.conftest import Base, CRUDBaseRepository, pytest_mark_anyio
 from tests.fixtures import data as d
-from tests.utils import check_exception_info, check_exception_info_not_found, get_method
-
-
-class CRUD(CRUDBaseRepository):
-
-    def is_update_allowed(self, obj: d.Model | None, payload: dict | None) -> None:
-        pass
-
-    def is_delete_allowed(self, obj: d.Model | None) -> None:
-        pass
-
-    def perform_create(self, create_data: dict, extra_data: Any | None = None) -> None:
-        create_data['title'] = extra_data
-
-    def perform_update(self, obj: Any, update_data: dict) -> Any | None:
-        update_data['title'] = 'perform_updated_done'
-        for key, value in update_data.items():
-            setattr(obj, key, value)
-        return obj
+from tests.utils import (
+    CRUD,
+    check_exception_info,
+    check_exception_info_not_found,
+    get_method,
+)
 
 
 class TestCRUDBaseRepository:

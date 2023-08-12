@@ -2,7 +2,7 @@ import typing
 
 from fastapi import status
 
-from tests.conftest import Base
+from tests.conftest import Base, CRUDBaseRepository
 from tests.fixtures import data as d
 from tests.fixtures.endpoints_testlib import DONE
 
@@ -100,3 +100,21 @@ def check_exception_info(exc_info, expected_msg: str, expected_error_code: int |
 
 def check_exception_info_not_found(exc_info, msg_not_found) -> None:
     check_exception_info(exc_info, msg_not_found, status.HTTP_404_NOT_FOUND)
+
+
+class CRUD(CRUDBaseRepository):
+
+    def is_update_allowed(self, obj: d.Model | None, payload: dict | None) -> None:
+        pass
+
+    def is_delete_allowed(self, obj: d.Model | None) -> None:
+        pass
+
+    def perform_create(self, create_data: dict, extra_data: typing.Any | None = None) -> None:
+        create_data['title'] = extra_data
+
+    def perform_update(self, obj: typing.Any, update_data: dict) -> typing.Any | None:
+        update_data['title'] = 'perform_updated_done'
+        for key, value in update_data.items():
+            setattr(obj, key, value)
+        return obj

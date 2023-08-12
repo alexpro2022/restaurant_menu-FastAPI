@@ -6,8 +6,7 @@ from app.repositories.redis_repository import RedisBaseRepository
 from app.services.services import BaseService
 from tests.conftest import pytest_mark_anyio
 from tests.fixtures import data as d
-from tests.unit_tests.repos_tests.test_base_crud import CRUD
-from tests.utils import check_exception_info, compare, get_method
+from tests.utils import CRUD, check_exception_info, compare, get_method
 
 pytestmark = pytest_mark_anyio
 
