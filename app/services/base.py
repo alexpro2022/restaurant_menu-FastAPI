@@ -1,6 +1,7 @@
 """
 This is a base service class implementation.
-Please provide methods  with extra logic for Redis in the inherited class.
+Please override set_cache_xxx methods with extra logic for Redis in the inherited class.
+    * xxx - create/update/delete
 """
 import typing
 

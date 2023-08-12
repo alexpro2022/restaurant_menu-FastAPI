@@ -2,7 +2,6 @@ from typing import Any
 
 import pytest
 from fastapi import HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from tests.conftest import Base, CRUDBaseRepository, pytest_mark_anyio
 from tests.fixtures import data as d
@@ -45,16 +44,6 @@ class TestCRUDBaseRepository:
     def setup_method(self, get_test_session):
         self.crud_base_not_implemented = CRUDBaseRepository(self.model, get_test_session)
         self.crud_base_implemented = CRUD(self.model, get_test_session)
-
-    '''def _check_exc_info(self, exc_info, expected_msg: str, expected_error_code: int | None = None) -> None:
-        if expected_error_code is None:
-            assert exc_info.value.args[0] == expected_msg
-        else:
-            for index, item in enumerate((expected_error_code, expected_msg)):
-                assert exc_info.value.args[index] == item, (exc_info.value.args[index], item)
-
-    def _check_exc_info_not_found(self, exc_info) -> None:
-        self._check_exc_info(exc_info, self.msg_not_found, status.HTTP_404_NOT_FOUND)'''
 
     def _check_obj(self, obj: Base) -> None:
         assert isinstance(obj, self.model)
