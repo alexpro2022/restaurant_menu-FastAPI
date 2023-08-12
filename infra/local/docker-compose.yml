@@ -10,10 +10,16 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis
-    command: --port 6379
-    expose:
-      - 6379
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:latest
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
 
   web:
     build: ../..
@@ -21,6 +27,7 @@ services:
     depends_on:
       - db
       - redis
+      - rabbitmq
     env_file:
       - ../../.env
 
