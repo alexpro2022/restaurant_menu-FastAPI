@@ -33,9 +33,10 @@ services:
 
   celery_worker:
     build: ../..
-      #context: ../../
-      #dockerfile: celery.Dockerfile
     command: bash -c "celery -A app.tasks beat & celery -A app.tasks worker --loglevel=debug"
+    container_name: celery_worker
+    links:
+      - rabbitmq
     depends_on:
       - rabbitmq
       - web

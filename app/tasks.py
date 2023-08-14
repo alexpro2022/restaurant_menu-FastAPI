@@ -15,13 +15,12 @@ TIME_INTERVAL = 15.0
 
 celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
 
-celery.conf.beat_schedule = {
-    'add-every-15-seconds': {
-        'task': 'tasks.synchronize',
-        'schedule': TIME_INTERVAL,
-    },
-}
 celery.conf.timezone = 'UTC'
+
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(TIME_INTERVAL, synchronize.s(), name='add every 15')
 
 
 class Hashes:
@@ -159,6 +158,6 @@ async def _synchronize():
         return await _task(async_session)
 
 
-@celery.task
+@celery.task(name='celery_worker.synchronize')
 def synchronize():
     return asyncio.run(_synchronize())
