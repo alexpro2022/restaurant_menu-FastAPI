@@ -40,6 +40,8 @@ services:
     depends_on:
       - rabbitmq
       - web
+    env_file:
+      - ../../.env
 
   nginx:
     image: nginx:1.21.3-alpine
