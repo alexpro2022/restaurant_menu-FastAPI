@@ -7,16 +7,21 @@ from celery import Celery
 from openpyxl import load_workbook
 
 from app.core import AsyncSessionLocal
-from app.core import engine as core_engine
 from app.repositories import DishRepository, MenuRepository, SubmenuRepository
 from app.schemas import DishIn, MenuIn, SubmenuIn
 
-# import time
+FILE_PATH = Path('admin/Menu.xlsx')
+TIME_INTERVAL = 15.0
 
 celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
 
-FILE_PATH = Path('admin/Menu.xlsx')
-TIME_INTERVAL = 15
+celery.conf.beat_schedule = {
+    'add-every-15-seconds': {
+        'task': 'tasks.synchronize',
+        'schedule': TIME_INTERVAL,
+    },
+}
+celery.conf.timezone = 'UTC'
 
 
 class Hashes:
@@ -82,9 +87,6 @@ def read_file(fname: str) -> list[dict]:
 def is_modified(fname: str) -> bool:
     mod_time = dt.fromtimestamp(fname.stat().st_mtime)
     return (dt.now() - mod_time).total_seconds() < TIME_INTERVAL
-    # now = dt.now()
-    # print(mod_time)
-    # print(now)
 
 
 async def db_fill(menus: list[dict],
@@ -128,7 +130,7 @@ async def find_and_delete(menus,
     pass
 
 
-async def _task(session, engine) -> list | None:
+async def _task(session) -> list | None:
     menu_repo = MenuRepository(session)
     submenu_repo = SubmenuRepository(session)
     dish_repo = DishRepository(session)
@@ -154,11 +156,9 @@ async def _task(session, engine) -> list | None:
 
 async def _synchronize():
     async with AsyncSessionLocal() as async_session:
-        return await _task(async_session, core_engine)
+        return await _task(async_session)
 
 
 @celery.task
 def synchronize():
-    result = asyncio.run(_synchronize())
-    # time.sleep(TIME_INTERVAL)
-    return result
+    return asyncio.run(_synchronize())
