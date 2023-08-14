@@ -8,14 +8,17 @@
 
 <details><summary>ДЗ №1</summary>
 <h1></h1>
+
 ☑ Написать проект на FastAPI с использованием PostgreSQL в качестве БД.
 
 ☑ В проекте следует реализовать REST API по работе с меню ресторана, все CRUD операции.
+
 <h1></h1>
 </details>
 
 <details><summary>ДЗ №2</summary>
 <h1></h1>
+
 ☑ В этом домашнем задании надо написать тесты для ранее разработанных ендпоинтов вашего API после вебинара №1.
 
 ☑ Обернуть программные компоненты в контейнеры. Контейнеры должны запускаться по одной команде “docker-compose up -d” или той которая описана вами в readme.md.
@@ -37,6 +40,7 @@
 
 <details><summary>ДЗ №3</summary>
 <h1></h1>
+
 ☑ Вынести бизнес логику и запросы в БД в отдельные слои приложения.
 
 ☑ Добавить кэширование запросов к API с использованием Redis. Не забыть про инвалидацию кэша.
@@ -57,6 +61,32 @@
 **Дополнительно:**
 
 Контейнеры с проектом и с тестами запускаются разными командами.
+
+<h1></h1>
+</details>
+
+<details><summary>ДЗ №4</summary>
+<h1></h1>
+
+В этом домашнем задании необходимо:
+
+☑ Переписать текущее FastAPI приложение на асинхронное выполнение
+
+☑ Добавить в проект фоновую задачу с помощью Celery + RabbitMQ.
+
+☑ Добавить эндпоинт (GET) для вывода всех меню со всеми связанными подменю и со всеми связанными блюдами.
+
+☑ Реализовать инвалидация кэша в background task (встроено в FastAPI)
+
+Фоновая задача: синхронизация Excel документа и БД.
+
+   В проекте создаем папку admin. В эту папку кладем файл Menu.xlsx (будет прикреплен к ДЗ). Не забываем запушить в гит.
+   При внесении изменений в файл все изменения должны отображаться в БД. Периодичность обновления 15 сек. Удалять БД при каждом обновлении – нельзя.
+
+Требования:
+  - Данные меню, подменю, блюд для нового эндпоинта должны доставаться одним ORM-запросом в БД (использовать подзапросы и агрегирующие функций SQL).
+  - Проект должен запускаться одной командой
+  - Проект должен соответствовать требованиям всех предыдущих вебинаров. (Не забыть добавить тесты для нового API эндпоинта)
 
 <h1></h1>
 </details>
@@ -86,6 +116,8 @@
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-v2.0-blue?logo=sqlalchemy)](https://www.sqlalchemy.org/)
 [![Alembic](https://img.shields.io/badge/-Alembic-464646?logo=alembic)](https://alembic.sqlalchemy.org/en/latest/)
 [![aioredis](https://img.shields.io/badge/-aioredis-464646?logo=aioredis)](https://aioredis.readthedocs.io/en/latest/)
+[![celery](https://img.shields.io/badge/-Celery-464646?logo=celery)](https://docs.celeryq.dev/en/stable/)
+[![rabbitmq](https://img.shields.io/badge/-RabbitMQ-464646?logo=rabbitmq)](https://www.rabbitmq.com/)
 [![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
 [![docker_compose](https://img.shields.io/badge/-Docker%20Compose-464646?logo=docker)](https://docs.docker.com/compose/)
 [![Nginx](https://img.shields.io/badge/-NGINX-464646?logo=NGINX)](https://nginx.org/ru/)
