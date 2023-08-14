@@ -18,7 +18,8 @@ class BaseService:
         self.db = db
         self.redis = redis
 
-    async def __get(self, method_name: str | None = None, pk: int | None = None) -> tuple[ModelType | None, bool]:
+    async def __get(self, method_name: str | None = None, pk: int | None = None):
+        # -> tuple[ModelType | None, bool]:
         """Returns obj, cache. Cache == True if obj from cache else False."""
         obj = (await self.redis.get_all() if pk is None else
                await self.redis.get_obj(pk))

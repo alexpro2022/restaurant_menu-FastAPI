@@ -2,7 +2,12 @@ from typing import AsyncGenerator
 
 import aioredis
 from sqlalchemy import MetaData, String
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column
 
 from app.core import settings
@@ -44,3 +49,9 @@ async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
 
 def get_aioredis() -> aioredis.Redis:
     return aioredis.from_url(settings.redis_url)
+
+
+async def db_flush(engine: AsyncEngine) -> None:
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)

@@ -27,9 +27,16 @@ services:
     depends_on:
       - db
       - redis
-      - rabbitmq
     env_file:
       - ../../.env
+
+  celery_worker:
+    build:
+      context: ../../
+      dockerfile: celery.Dockerfile
+    depends_on:
+      - rabbitmq
+      - web
 
   nginx:
     image: nginx:1.21.3-alpine
