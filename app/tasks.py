@@ -5,8 +5,9 @@ from pathlib import Path
 
 from celery import Celery
 from openpyxl import load_workbook
+from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.core import AsyncSessionLocal
+from app.core import AsyncSessionLocal, db_flush, engine
 from app.repositories import DishRepository, MenuRepository, SubmenuRepository
 from app.schemas import DishIn, MenuIn, SubmenuIn
 
@@ -129,13 +130,14 @@ async def find_and_delete(menus,
     pass
 
 
-async def _task(session) -> list | None:
+async def _task(session, engine: AsyncEngine) -> list | None:
     menu_repo = MenuRepository(session)
     submenu_repo = SubmenuRepository(session)
     dish_repo = DishRepository(session)
     repos = (menu_repo, submenu_repo, dish_repo,)
     menus = read_file(FILE_PATH)
     if hashes.menus_hashes is None:  # first cicle
+        await db_flush(engine)
         await db_fill(menus, *repos)
         hashes.set_hashes(menus)
     elif not is_modified(FILE_PATH):
@@ -155,7 +157,7 @@ async def _task(session) -> list | None:
 
 async def _synchronize():
     async with AsyncSessionLocal() as async_session:
-        return await _task(async_session)
+        return await _task(async_session, engine)
 
 
 @celery.task(name='celery_worker.synchronize')
