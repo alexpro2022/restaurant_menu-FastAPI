@@ -23,6 +23,7 @@ services:
 
   web:
     build: ../..
+    command: bash -c "alembic upgrade head && uvicorn app.main:app --host=0.0.0.0"
     restart: always
     depends_on:
       - db
@@ -31,9 +32,10 @@ services:
       - ../../.env
 
   celery_worker:
-    build:
-      context: ../../
-      dockerfile: celery.Dockerfile
+    build: ../..
+      #context: ../../
+      #dockerfile: celery.Dockerfile
+    command: bash -c "celery -A app.tasks beat & celery -A app.tasks worker --loglevel=debug"
     depends_on:
       - rabbitmq
       - web
