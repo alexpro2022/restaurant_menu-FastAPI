@@ -143,15 +143,17 @@ async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list |
     elif not is_modified(fname):
         return None
     else:
-        new_menus = [menu for menu in menus if hashes.is_new_menu(menu)]
-        if not new_menus:
+        # new_menus = [menu for menu in menus if hashes.is_new_menu(menu)]
+        await db_flush(engine)
+        await db_fill(menus, *repos)
+        '''if not new_menus:
             await find_and_delete(menus, *repos)
         elif len(menus) == len(hashes.menus_hashes):
             await find_and_update(menus, new_menus, *repos)
         else:
             await create_new_items(new_menus, *repos)
         hashes.set_hashes(menus)
-        return new_menus
+        return new_menus'''
     return menus
 
 

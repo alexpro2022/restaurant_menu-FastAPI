@@ -30,7 +30,7 @@ services:
       - redis
     volumes:
       - type: bind
-        source: ./admin/Menu.xlsx
+        source: ../../admin/Menu.xlsx
         target: /admin/Menu.xlsx
         read_only: true
     env_file:
