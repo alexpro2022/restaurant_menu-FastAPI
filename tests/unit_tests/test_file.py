@@ -2,7 +2,8 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from app.tasks import _task, db_fill, db_flush, is_modified, read_file
+from app.core import db_flush
+from app.tasks import _task, db_fill, is_modified, read_file
 from tests.conftest import FILE_PATH
 from tests.conftest import engine as test_engine
 from tests.conftest import pytest_mark_anyio

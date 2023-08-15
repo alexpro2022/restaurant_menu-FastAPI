@@ -131,17 +131,14 @@ async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list |
     dish_repo = DishRepository(session)
     repos = (menu_repo, submenu_repo, dish_repo,)  # noqa
     menus = read_file(fname)
-    if not is_modified(fname):
-        return None
-    # await db_fill(menus, *repos)
-    return menus
-    '''if hashes.menus_hashes is None:  # first cicle
-        await db_flush(engine)
+    if hashes.menus_hashes is None:  # first cicle
+        # await db_flush(engine)
         await db_fill(menus, *repos)
         hashes.set_hashes(menus)
     elif not is_modified(fname):
         return None
-    else:
+    return menus
+    '''else:
         # new_menus = [menu for menu in menus if hashes.is_new_menu(menu)]
         # await db_flush(engine)
         await db_fill(menus, *repos)
