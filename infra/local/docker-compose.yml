@@ -31,7 +31,7 @@ services:
     volumes:
       - type: bind
         source: ./admin/Menu.xlsx
-        target: /admin/Menu.xlxs
+        target: /admin/Menu.xlsx
         read_only: true
     env_file:
       - ../../.env

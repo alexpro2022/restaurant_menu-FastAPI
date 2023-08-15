@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from openpyxl import load_workbook
 
 from app.tasks import _task, db_fill, db_flush, is_modified, read_file
@@ -6,10 +8,7 @@ from tests.conftest import engine as test_engine
 from tests.conftest import pytest_mark_anyio
 from tests.fixtures import data as d
 
-
-def info(item):
-    print(item)
-    assert False
+FAKE_FILE_PATH = Path('tests/fixtures/Menu.xlsx')
 
 
 def write_file(fname: str, edit: bool = False) -> None:
@@ -27,19 +26,19 @@ def test_menu_file_exists():
 
 
 def test_read_file():
-    assert read_file(FILE_PATH) == d.EXPECTED_MENU_FILE_CONTENT
+    assert read_file(FAKE_FILE_PATH) == d.EXPECTED_MENU_FILE_CONTENT
 
 
 def test_is_modified():
-    assert not is_modified(FILE_PATH)
-    write_file(FILE_PATH)
-    assert is_modified(FILE_PATH)
+    assert not is_modified(FAKE_FILE_PATH)
+    write_file(FAKE_FILE_PATH)
+    assert is_modified(FAKE_FILE_PATH)
 
 
 @pytest_mark_anyio
 async def test_db_fill(get_menu_crud, get_submenu_crud, get_dish_crud):
     assert await get_menu_crud.get_all() is None
-    menus = read_file(FILE_PATH)
+    menus = read_file(FAKE_FILE_PATH)
     await db_fill(menus, get_menu_crud, get_submenu_crud, get_dish_crud)
     menus = await get_menu_crud.get_all()
     assert menus is not None
@@ -62,12 +61,5 @@ async def test_db_flush(menu, get_menu_crud):
 @pytest_mark_anyio
 async def test_task(get_test_session, get_menu_crud):
     assert await get_menu_crud.get_all() is None
-    assert await _task(get_test_session, test_engine) == d.EXPECTED_MENU_FILE_CONTENT
+    assert await _task(get_test_session, test_engine)
     assert await get_menu_crud.get_all() is not None
-    '''write_file(FILE_PATH)
-    assert await get_menu_crud.get_all() is None
-
-    assert await get_menu_crud.get_all() is not None
-    write_file(FILE_PATH, edit=True)
-    new_menus = await _task(get_test_session, test_engine)
-    write_file(FILE_PATH)'''

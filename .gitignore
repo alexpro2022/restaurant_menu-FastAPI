@@ -167,3 +167,4 @@ _test*
 =GARB=
 *decorators.py
 redis
+infra/local/admin
