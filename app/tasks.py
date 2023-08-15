@@ -7,7 +7,7 @@ from celery import Celery
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.core import AsyncSessionLocal, db_flush, engine
+from app.core import AsyncSessionLocal, engine
 from app.repositories import DishRepository, MenuRepository, SubmenuRepository
 from app.schemas import DishIn, MenuIn, SubmenuIn
 
@@ -17,11 +17,6 @@ TIME_INTERVAL = 15.0
 celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
 
 celery.conf.timezone = 'UTC'
-
-
-@celery.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(TIME_INTERVAL, synchronize.s(), name='add every 15')
 
 
 class Hashes:
@@ -134,9 +129,13 @@ async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list |
     menu_repo = MenuRepository(session)
     submenu_repo = SubmenuRepository(session)
     dish_repo = DishRepository(session)
-    repos = (menu_repo, submenu_repo, dish_repo,)
+    repos = (menu_repo, submenu_repo, dish_repo,)  # noqa
     menus = read_file(fname)
-    if hashes.menus_hashes is None:  # first cicle
+    if not is_modified(fname):
+        return None
+    # await db_fill(menus, *repos)
+    return menus
+    '''if hashes.menus_hashes is None:  # first cicle
         await db_flush(engine)
         await db_fill(menus, *repos)
         hashes.set_hashes(menus)
@@ -144,9 +143,9 @@ async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list |
         return None
     else:
         # new_menus = [menu for menu in menus if hashes.is_new_menu(menu)]
-        await db_flush(engine)
+        # await db_flush(engine)
         await db_fill(menus, *repos)
-        '''if not new_menus:
+        if not new_menus:
             await find_and_delete(menus, *repos)
         elif len(menus) == len(hashes.menus_hashes):
             await find_and_update(menus, new_menus, *repos)
@@ -154,7 +153,6 @@ async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list |
             await create_new_items(new_menus, *repos)
         hashes.set_hashes(menus)
         return new_menus'''
-    return menus
 
 
 async def _synchronize():
@@ -165,3 +163,8 @@ async def _synchronize():
 @celery.task(name='celery_worker.synchronize')
 def synchronize():
     return asyncio.run(_synchronize())
+
+
+@celery.on_after_configure.connect
+def setup_periodic_tasks(sender, **kwargs):
+    sender.add_periodic_task(TIME_INTERVAL, synchronize.s(), name='add every 15')

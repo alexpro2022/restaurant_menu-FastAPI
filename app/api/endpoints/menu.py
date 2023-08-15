@@ -5,6 +5,7 @@ from app import schemas
 from app.api.endpoints import utils as u
 from app.core import settings
 from app.services import menu_service
+from app.tasks import _synchronize
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
 
@@ -84,3 +85,8 @@ async def get_full_list(menu_service: menu_service,
                         background_tasks: BackgroundTasks):
     return [jsonable_encoder(m) for m in
             await get_all_(menu_service, background_tasks)]
+
+
+@router.get('-without-celery')
+async def synch_no_celery():
+    return await _synchronize()
