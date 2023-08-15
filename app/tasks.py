@@ -130,17 +130,17 @@ async def find_and_delete(menus,
     pass
 
 
-async def _task(session, engine: AsyncEngine) -> list | None:
+async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list | None:
     menu_repo = MenuRepository(session)
     submenu_repo = SubmenuRepository(session)
     dish_repo = DishRepository(session)
     repos = (menu_repo, submenu_repo, dish_repo,)
-    menus = read_file(FILE_PATH)
+    menus = read_file(fname)
     if hashes.menus_hashes is None:  # first cicle
         await db_flush(engine)
         await db_fill(menus, *repos)
         hashes.set_hashes(menus)
-    elif not is_modified(FILE_PATH):
+    elif not is_modified(fname):
         return None
     else:
         new_menus = [menu for menu in menus if hashes.is_new_menu(menu)]

@@ -61,5 +61,5 @@ async def test_db_flush(menu, get_menu_crud):
 @pytest_mark_anyio
 async def test_task(get_test_session, get_menu_crud):
     assert await get_menu_crud.get_all() is None
-    assert await _task(get_test_session, test_engine)
+    assert await _task(get_test_session, test_engine, FAKE_FILE_PATH) == d.EXPECTED_MENU_FILE_CONTENT
     assert await get_menu_crud.get_all() is not None
