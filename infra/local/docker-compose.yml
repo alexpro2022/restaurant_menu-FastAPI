@@ -28,6 +28,11 @@ services:
     depends_on:
       - db
       - redis
+    volumes:
+      - type: bind
+        source: ./admin/Menu.xlsx
+        target: /admin/Menu.xlxs
+        read_only: true
     env_file:
       - ../../.env
 
