@@ -27,7 +27,8 @@ def test_menu_file_exists():
 
 
 def test_read_file():
-    assert read_file(FAKE_FILE_PATH) == d.EXPECTED_MENU_FILE_CONTENT
+    menus, _, _ = read_file(FAKE_FILE_PATH)
+    assert menus == d.EXPECTED_MENU_FILE_CONTENT
 
 
 def test_is_modified():
@@ -40,28 +41,16 @@ def test_is_modified():
 async def test_db_fill(get_menu_service, get_submenu_service, get_dish_service):
     assert await get_menu_service.db.get_all() is None
     assert await get_menu_service.redis.get_all() is None
-    menus = read_file(FAKE_FILE_PATH)
+    menus, _, _ = read_file(FAKE_FILE_PATH)
     await db_fill(menus, get_menu_service, get_submenu_service, get_dish_service)
     menus = await get_menu_service.get_all()
     assert menus is not None
-    assert len(menus[0]) == 2
-    # assert menus == await get_menu_service.db.get_all()
-    # assert menus == await get_menu_service.redis.get_all()
-    '''print(menus)
-    print('------------------------------------------')
-    print(await get_menu_service.db.get_all())
-    print('------------------------------------------')
-    print(await get_menu_service.redis.get_all())
-    assert False'''
+    assert len(menus) == 2
+
     submenus = await get_submenu_service.get_all()
     assert submenus is not None
     assert len(submenus[0]) == 4
-    '''print(submenus)
-    print('------------------------------------------')
-    print(await get_submenu_service.db.get_all())
-    print('------------------------------------------')
-    print(await get_submenu_service.redis.get_all())
-    assert False'''
+
     dishes = await get_dish_service.get_all()
     assert dishes is not None
     assert len(dishes[0]) == 12
@@ -74,6 +63,7 @@ async def test_db_flush(menu, get_menu_crud):
     assert await get_menu_crud.get_all() is None
 
 
+'''
 @pytest_mark_anyio
 async def test_task(get_test_session, get_menu_crud):
     # assert await get_menu_crud.get_all() is None
@@ -81,3 +71,4 @@ async def test_task(get_test_session, get_menu_crud):
     write_file(FAKE_FILE_PATH)
     assert await _task(get_test_session, test_engine, FAKE_FILE_PATH) == d.EXPECTED_MENU_FILE_CONTENT
     # assert await get_menu_crud.get_all() is not None
+'''

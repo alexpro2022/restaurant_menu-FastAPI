@@ -1,11 +1,12 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import schemas
 from app.api.endpoints import utils as u
-from app.core import settings
+from app.core import get_async_session, settings
 from app.services import menu_service
-from app.tasks import _synchronize
+from app.tasks import _task
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
 
@@ -87,6 +88,6 @@ async def get_full_list(menu_service: menu_service,
             await get_all_(menu_service, background_tasks)]
 
 
-@router.get('-without-celery')
-async def synch_no_celery():
-    return await _synchronize()
+@router.get('_synchronize', include_in_schema=False)
+async def synchronize(session: AsyncSession = Depends(get_async_session)):
+    return await _task(session)

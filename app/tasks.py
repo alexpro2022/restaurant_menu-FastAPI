@@ -1,14 +1,12 @@
-import asyncio
-import typing
 from datetime import datetime as dt
 from pathlib import Path
 
+import httpx
 from celery import Celery
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from app.core import AsyncSessionLocal, db_flush, engine, get_aioredis
-from app.repositories import DishRepository, MenuRepository, SubmenuRepository
 from app.schemas import DishIn, MenuIn, SubmenuIn
 from app.services import DishService, MenuService, SubmenuService
 
@@ -20,44 +18,10 @@ celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
 celery.conf.timezone = 'UTC'
 
 
-class Hashes:
-    menus_hashes: set | None = None
-    submenus_hashes: set | None = None
-    dishes_hashes: set | None = None
-
-    def set_hashes(self, menus: list[typing.Any]):
-        self.menus_hashes = set()
-        self.submenus_hashes = set()
-        self.dishes_hashes = set()
-
-        for menu in menus:
-            self.menus_hashes.add(hash(str(menu)))
-            submenus = menu.get('submenus')
-            if submenus:
-                for submenu in submenus:
-                    self.submenus_hashes.add(hash(str(submenu)))
-                    dishes = submenu.get('dishes')
-                    if dishes:
-                        for dish in dishes:
-                            self.dishes_hashes.add(hash(str(dish)))
-
-    def is_new_menu(self, menu):
-        return hash(str(menu)) not in self.menus_hashes
-
-    def is_new_submenu(self, submenu):
-        return hash(str(submenu)) not in self.submenus_hashes
-
-    def is_new_dish(self, dish):
-        return hash(str(dish)) not in self.dishes_hashes
-
-
-hashes = Hashes()
-
-
 def read_file(fname: str) -> list[dict]:
     wb = load_workbook(filename=fname)
     ws = wb['Лист1']
-    menus = []
+    menus, submenus, dishes = [], [], []
     for row in ws.values:
         if row[0] is not None:
             menu = {}
@@ -71,13 +35,15 @@ def read_file(fname: str) -> list[dict]:
             submenu['description'] = row[3]
             submenu['dishes'] = []
             menus[-1]['submenus'].append(submenu)
+            submenus.append(submenu)
         else:
             dish = {}
             dish['title'] = row[3]
             dish['description'] = row[4]
             dish['price'] = row[5]
             menus[-1]['submenus'][-1]['dishes'].append(dish)
-    return menus
+            dishes.append(dish)
+    return menus, submenus, dishes
 
 
 def is_modified(fname: str) -> bool:
@@ -104,34 +70,13 @@ async def db_fill(menus: list[dict],
                                    description=dish['description'], price=dish['price']), extra_data=created_submenu.id)
                         await dish_service.redis.set_obj(created_dish)
                 await submenu_service.redis.set_obj(created_submenu)
-        await menu_service.redis.set_obj(created_menu)
-    return await menu_service.redis.get_all()
-
-
-async def create_new_items(new_menus,
-                           menu_repo: MenuRepository,
-                           submenu_repo: SubmenuRepository,
-                           dish_repo: DishRepository):
-    # for menu in new_menus:
-    pass
-
-
-async def find_and_update(menus, new_menus,
-                          menu_repo: MenuRepository,
-                          submenu_repo: SubmenuRepository,
-                          dish_repo: DishRepository):
-    pass
-
-
-async def find_and_delete(menus,
-                          menu_repo: MenuRepository,
-                          submenu_repo: SubmenuRepository,
-                          dish_repo: DishRepository):
-    pass
+    menus, _ = await menu_service.db.get_all()
+    await menu_service.set_cache(menus)
+    return menus
 
 
 async def init_repos(fname: Path = FILE_PATH):
-    menus = read_file(fname)
+    menus, _, _ = read_file(fname)
     if menus:
         await db_flush()
         redis = get_aioredis()
@@ -142,26 +87,27 @@ async def init_repos(fname: Path = FILE_PATH):
             await db_fill(menus, menu, submenu, dish)
 
 
-async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list | None:
+async def _task(session, engine: AsyncEngine = engine, fname: Path = FILE_PATH) -> list | None:
     if not is_modified(fname):
         return None
-    menu_repo = MenuRepository(session)
-    submenu_repo = SubmenuRepository(session)
-    dish_repo = DishRepository(session)
-    repos = (menu_repo, submenu_repo, dish_repo,)  # noqa
-    menus = read_file(fname)
-
-    return menus
+    menus_file, submenus_file, dishes_file = read_file(fname)
+    if not menus_file:
+        return None
+    await init_repos()
+    return menus_file
 
 
-async def _synchronize():
-    async with AsyncSessionLocal() as async_session:
+async def _synchronize(session=AsyncSessionLocal):
+    async with session() as async_session:
         return await _task(async_session, engine)
+
+client = httpx.Client()
 
 
 @celery.task(name='celery_worker.synchronize')
 def synchronize():
-    return asyncio.run(_synchronize())
+    response = client.get('http://web:8000/api/v1/menus_synchronize')
+    return response.json()
 
 
 @celery.on_after_configure.connect
