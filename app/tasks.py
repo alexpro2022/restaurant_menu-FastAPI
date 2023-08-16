@@ -7,7 +7,7 @@ from celery import Celery
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.core import AsyncSessionLocal, engine
+from app.core import AsyncSessionLocal, db_flush, engine
 from app.repositories import DishRepository, MenuRepository, SubmenuRepository
 from app.schemas import DishIn, MenuIn, SubmenuIn
 
@@ -125,31 +125,28 @@ async def find_and_delete(menus,
     pass
 
 
+async def init_repos(fname: Path = FILE_PATH):
+    menus = read_file(fname)
+    if menus:
+        await db_flush()
+        async with AsyncSessionLocal() as session:
+            menu_repo = MenuRepository(session)
+            submenu_repo = SubmenuRepository(session)
+            dish_repo = DishRepository(session)
+            repos = (menu_repo, submenu_repo, dish_repo,)  # noqa
+            await db_fill(menus, *repos)
+
+
 async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list | None:
+    if not is_modified(fname):
+        return None
     menu_repo = MenuRepository(session)
     submenu_repo = SubmenuRepository(session)
     dish_repo = DishRepository(session)
     repos = (menu_repo, submenu_repo, dish_repo,)  # noqa
     menus = read_file(fname)
-    if hashes.menus_hashes is None:  # first cicle
-        # await db_flush(engine)
-        await db_fill(menus, *repos)
-        hashes.set_hashes(menus)
-    elif not is_modified(fname):
-        return None
+
     return menus
-    '''else:
-        # new_menus = [menu for menu in menus if hashes.is_new_menu(menu)]
-        # await db_flush(engine)
-        await db_fill(menus, *repos)
-        if not new_menus:
-            await find_and_delete(menus, *repos)
-        elif len(menus) == len(hashes.menus_hashes):
-            await find_and_update(menus, new_menus, *repos)
-        else:
-            await create_new_items(new_menus, *repos)
-        hashes.set_hashes(menus)
-        return new_menus'''
 
 
 async def _synchronize():
