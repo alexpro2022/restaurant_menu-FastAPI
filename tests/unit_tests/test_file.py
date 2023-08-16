@@ -37,19 +37,34 @@ def test_is_modified():
 
 
 @pytest_mark_anyio
-async def test_db_fill(get_menu_crud, get_submenu_crud, get_dish_crud):
-    assert await get_menu_crud.get_all() is None
+async def test_db_fill(get_menu_service, get_submenu_service, get_dish_service):
+    assert await get_menu_service.db.get_all() is None
+    assert await get_menu_service.redis.get_all() is None
     menus = read_file(FAKE_FILE_PATH)
-    await db_fill(menus, get_menu_crud, get_submenu_crud, get_dish_crud)
-    menus = await get_menu_crud.get_all()
+    await db_fill(menus, get_menu_service, get_submenu_service, get_dish_service)
+    menus = await get_menu_service.get_all()
     assert menus is not None
-    assert len(menus) == 2
-    submenus = await get_submenu_crud.get_all()
+    assert len(menus[0]) == 2
+    # assert menus == await get_menu_service.db.get_all()
+    # assert menus == await get_menu_service.redis.get_all()
+    '''print(menus)
+    print('------------------------------------------')
+    print(await get_menu_service.db.get_all())
+    print('------------------------------------------')
+    print(await get_menu_service.redis.get_all())
+    assert False'''
+    submenus = await get_submenu_service.get_all()
     assert submenus is not None
-    assert len(submenus) == 4
-    dishes = await get_dish_crud.get_all()
+    assert len(submenus[0]) == 4
+    '''print(submenus)
+    print('------------------------------------------')
+    print(await get_submenu_service.db.get_all())
+    print('------------------------------------------')
+    print(await get_submenu_service.redis.get_all())
+    assert False'''
+    dishes = await get_dish_service.get_all()
     assert dishes is not None
-    assert len(dishes) == 12
+    assert len(dishes[0]) == 12
 
 
 @pytest_mark_anyio

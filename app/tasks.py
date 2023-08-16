@@ -7,9 +7,10 @@ from celery import Celery
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from app.core import AsyncSessionLocal, db_flush, engine
+from app.core import AsyncSessionLocal, db_flush, engine, get_aioredis
 from app.repositories import DishRepository, MenuRepository, SubmenuRepository
 from app.schemas import DishIn, MenuIn, SubmenuIn
+from app.services import DishService, MenuService, SubmenuService
 
 FILE_PATH = Path('admin/Menu.xlsx')
 TIME_INTERVAL = 15.0
@@ -85,22 +86,26 @@ def is_modified(fname: str) -> bool:
 
 
 async def db_fill(menus: list[dict],
-                  menu_repo: MenuRepository,
-                  submenu_repo: SubmenuRepository,
-                  dish_repo: DishRepository):
+                  menu_service: MenuService,
+                  submenu_service: SubmenuService,
+                  dish_service: DishService):
     for menu in menus:
-        created_menu = await menu_repo.create(MenuIn(title=menu['title'], description=menu['description']))
+        created_menu = await menu_service.db.create(MenuIn(title=menu['title'], description=menu['description']))
         submenus = menu.get('submenus')
         if submenus:
             for submenu in submenus:
-                created_submenu = await submenu_repo.create(
+                created_submenu = await submenu_service.db.create(
                     SubmenuIn(title=submenu['title'], description=submenu['description']), extra_data=created_menu.id)
                 dishes = submenu.get('dishes')
                 if dishes:
                     for dish in dishes:
-                        await dish_repo.create(
+                        created_dish = await dish_service.db.create(
                             DishIn(title=dish['title'],
                                    description=dish['description'], price=dish['price']), extra_data=created_submenu.id)
+                        await dish_service.redis.set_obj(created_dish)
+                await submenu_service.redis.set_obj(created_submenu)
+        await menu_service.redis.set_obj(created_menu)
+    return await menu_service.redis.get_all()
 
 
 async def create_new_items(new_menus,
@@ -129,12 +134,12 @@ async def init_repos(fname: Path = FILE_PATH):
     menus = read_file(fname)
     if menus:
         await db_flush()
+        redis = get_aioredis()
         async with AsyncSessionLocal() as session:
-            menu_repo = MenuRepository(session)
-            submenu_repo = SubmenuRepository(session)
-            dish_repo = DishRepository(session)
-            repos = (menu_repo, submenu_repo, dish_repo,)  # noqa
-            await db_fill(menus, *repos)
+            menu = MenuService(session, redis)
+            submenu = SubmenuService(session, redis)
+            dish = DishService(session, redis)
+            await db_fill(menus, menu, submenu, dish)
 
 
 async def _task(session, engine: AsyncEngine, fname: Path = FILE_PATH) -> list | None:
