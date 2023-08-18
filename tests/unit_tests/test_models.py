@@ -1,7 +1,7 @@
 import pytest
 
-from ..conftest import Dish, Menu, Submenu
-from ..fixtures import data as d
+from tests.conftest import Base, Dish, Menu, Submenu
+from tests.fixtures import data as d
 
 COMMON_FIELDS = ('id', 'title', 'description')
 
@@ -11,7 +11,7 @@ COMMON_FIELDS = ('id', 'title', 'description')
     (Submenu, (*COMMON_FIELDS, 'dishes', 'menu_id', 'menu')),
     (Menu, (*COMMON_FIELDS, 'submenus')),
 ))
-def test_model_attr(model, attrs):
+def test_model_attr(model: Base, attrs: str) -> None:
     for attr_name in attrs:
         assert hasattr(model, attr_name)
 
@@ -21,7 +21,7 @@ def test_model_attr(model, attrs):
     (Menu, d.MENU_POST_PAYLOAD, (*COMMON_FIELDS, 'submenus_count', 'dishes_count')),
     (Submenu, d.SUBMENU_POST_PAYLOAD, (*COMMON_FIELDS, 'dishes_count')),
 ))
-def test_model_repr(model, data, attrs):
+def test_model_repr(model: Base, data: dict[str, str], attrs: str) -> None:
     representation = str(model(**data))
     for attr_name in attrs:
         assert representation.find(attr_name) != -1

@@ -24,7 +24,7 @@ def assert_msg(response: Response, expected_msg: str | None) -> None:
         assert response_json == {'detail': expected_msg}, f'\n   {response_json} {expected_msg}'
 
 
-def get_invalid(item):
+def get_invalid(item: int | str| dict) -> tuple:
     invalid_str = (None, '', ' ', '-invalid-')
     if isinstance(item, int):
         return 0, -1, 10**12

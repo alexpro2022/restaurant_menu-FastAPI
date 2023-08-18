@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from ..conftest import Base
+from tests.conftest import Base
 
 
 class Model(Base):

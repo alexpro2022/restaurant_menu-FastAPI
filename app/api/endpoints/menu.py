@@ -6,7 +6,7 @@ from app import schemas
 from app.api.endpoints import utils as u
 from app.core import get_async_session, settings
 from app.services import menu_service
-from app.tasks import _task
+from app.tasks import task
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
 
@@ -90,4 +90,4 @@ async def get_full_list(menu_service: menu_service,
 
 @router.get('_synchronize', include_in_schema=False)
 async def synchronize(session: AsyncSession = Depends(get_async_session)):
-    return await _task(session)
+    return await task(session)

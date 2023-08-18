@@ -1,12 +1,12 @@
 from datetime import datetime as dt
 from pathlib import Path
-
+import aioredis
 import httpx
 from celery import Celery
 from openpyxl import load_workbook
-from sqlalchemy.ext.asyncio import AsyncEngine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
-from app.core import AsyncSessionLocal, db_flush, engine, get_aioredis
+from app.core import db_flush, engine, get_aioredis
 from app.schemas import DishIn, MenuIn, SubmenuIn
 from app.services import DishService, MenuService, SubmenuService
 
@@ -18,7 +18,7 @@ celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
 celery.conf.timezone = 'UTC'
 
 
-def read_file(fname: str) -> list[dict]:
+def read_file(fname: str) -> tuple[list[dict]]:
     wb = load_workbook(filename=fname)
     ws = wb['Лист1']
     menus, submenus, dishes = [], [], []
@@ -51,10 +51,10 @@ def is_modified(fname: str) -> bool:
     return (dt.now() - mod_time).total_seconds() < TIME_INTERVAL
 
 
-async def db_fill(menus: list[dict],
-                  menu_service: MenuService,
-                  submenu_service: SubmenuService,
-                  dish_service: DishService):
+async def fill_repos(menus: list[dict],
+                     menu_service: MenuService,
+                     submenu_service: SubmenuService,
+                     dish_service: DishService) -> None:
     for menu in menus:
         created_menu = await menu_service.db.create(MenuIn(title=menu['title'], description=menu['description']))
         submenus = menu.get('submenus')
@@ -65,29 +65,29 @@ async def db_fill(menus: list[dict],
                 dishes = submenu.get('dishes')
                 if dishes:
                     for dish in dishes:
-                        created_dish = await dish_service.db.create(
+                        await dish_service.db.create(
                             DishIn(title=dish['title'],
                                    description=dish['description'], price=dish['price']), extra_data=created_submenu.id)
-                        await dish_service.redis.set_obj(created_dish)
-                await submenu_service.redis.set_obj(created_submenu)
-    menus, _ = await menu_service.db.get_all()
-    await menu_service.set_cache(menus)
-    return menus
+    await menu_service.set_cache(await menu_service.db.get_all())
+    await submenu_service.set_cache(await submenu_service.db.get_all())
+    await dish_service.set_cache(await dish_service.db.get_all())
 
 
-async def init_repos(fname: Path = FILE_PATH):
+async def init_repos(session: AsyncSession,
+                     fname: Path = FILE_PATH,
+                     engine: AsyncEngine = engine,
+                     redis: aioredis.Redis = get_aioredis()) -> None:
     menus, _, _ = read_file(fname)
     if menus:
-        await db_flush()
-        redis = get_aioredis()
-        async with AsyncSessionLocal() as session:
-            menu = MenuService(session, redis)
-            submenu = SubmenuService(session, redis)
-            dish = DishService(session, redis)
-            await db_fill(menus, menu, submenu, dish)
+        await redis.flushall()
+        await db_flush(engine)
+        await fill_repos(menus,
+                         MenuService(session, redis),
+                         SubmenuService(session, redis),
+                         DishService(session, redis))
 
 
-async def _task(session, engine: AsyncEngine = engine, fname: Path = FILE_PATH) -> list | None:
+async def task(session: AsyncSession, engine: AsyncEngine = engine, fname: Path = FILE_PATH) -> list | None:
     if not is_modified(fname):
         return None
     menus_file, submenus_file, dishes_file = read_file(fname)
@@ -96,10 +96,6 @@ async def _task(session, engine: AsyncEngine = engine, fname: Path = FILE_PATH) 
     await init_repos()
     return menus_file
 
-
-async def _synchronize(session=AsyncSessionLocal):
-    async with session() as async_session:
-        return await _task(async_session, engine)
 
 client = httpx.Client()
 

@@ -2,23 +2,23 @@ import pytest
 from fastapi import status
 
 from tests import utils as u
-from tests.conftest import pytest_mark_anyio
+from tests import conftest as c
 from tests.fixtures import data as d
 from tests.fixtures.endpoints_testlib import not_allowed_methods_test, standard_tests
 
 DELETE, GET, POST, PUT, PATCH = 'DELETE', 'GET', 'POST', 'PUT', 'PATCH'
 DOUBLE_NONE = (None, None)
 
-pytestmark = pytest_mark_anyio
+pytestmark = c.pytest_mark_anyio
 
 
 @pytest.mark.parametrize('endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU))
-async def test_not_allowed_method(async_client, endpoint):
+async def test_not_allowed_method(async_client: c.AsyncClient, endpoint: str):
     await not_allowed_methods_test(async_client, (PUT,), endpoint)
 
 
 @pytest.mark.parametrize('endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU, d.ENDPOINT_FULL_LIST))
-async def test_get_all_returns_empty_list(async_client, endpoint):
+async def test_get_all_returns_empty_list(async_client: c.AsyncClient, endpoint: str):
     response = await async_client.get(endpoint)
     assert response.status_code == status.HTTP_200_OK, response.json()
     assert response.json() == []
@@ -42,46 +42,56 @@ async def test_get_all_returns_empty_list(async_client, endpoint):
     # -------------------------------------------------------------------------------------------------
     (GET, d.ENDPOINT_FULL_LIST, *DOUBLE_NONE, *DOUBLE_NONE, u.check_full_list),
 ))
-async def test_standard(dish, async_client, get_menu_crud, get_submenu_crud, get_dish_crud,
-                        method, endpoint, path_param, payload, msg_already_exists, msg_not_found, check_func):
-    crud = u.get_crud(endpoint, menu_crud=get_menu_crud, submenu_crud=get_submenu_crud, dish_crud=get_dish_crud)
-    assert len(await crud.get_all()) == 1
+async def test_standard(dish: c.Response,
+                        async_client: c.AsyncClient,
+                        get_menu_repo:c.MenuRepository,
+                        get_submenu_repo: c.SubmenuRepository,
+                        get_dish_repo: c.DishRepository,
+                        method: str,
+                        endpoint: str,
+                        path_param: str,
+                        payload: str,
+                        msg_already_exists: str,
+                        msg_not_found: str,
+                        check_func) -> None:
+    repo = u.get_crud(endpoint, menu_repo=get_menu_repo, submenu_repo=get_submenu_repo, dish_repo=get_dish_repo)
+    assert len(await repo.get_all()) == 1
     await standard_tests(async_client, method, endpoint,
                          path_param=path_param, json=payload,
                          msg_already_exists=msg_already_exists,
                          msg_not_found=msg_not_found,
                          func_check_valid_response=check_func)
     if method == DELETE:
-        assert not await crud.get_all()
+        assert not await repo.get_all()
     else:
-        assert len(await crud.get_all()) == 1
+        assert len(await repo.get_all()) == 1
 
 
-async def test_menu_post(async_client, get_menu_crud):
-    assert not await get_menu_crud.get_all()
+async def test_menu_post(async_client: c.AsyncSession, get_menu_repo: c.MenuRepository):
+    assert not await get_menu_repo.get_all()
     await standard_tests(async_client, POST, d.ENDPOINT_MENU,
                          json=d.MENU_POST_PAYLOAD,
                          msg_already_exists=d.MENU_ALREADY_EXISTS_MSG,
                          msg_not_found=d.MENU_NOT_FOUND_MSG,
                          func_check_valid_response=u.check_created_menu)
-    assert await get_menu_crud.get_all()
+    assert await get_menu_repo.get_all()
 
 
-async def test_submenu_post(menu, async_client, get_submenu_crud):
-    assert await get_submenu_crud.get_all() is None
+async def test_submenu_post(menu: c.Response, async_client: c.AsyncSession, get_submenu_repo: c.SubmenuRepository):
+    assert await get_submenu_repo.get_all() is None
     await standard_tests(async_client, POST, d.ENDPOINT_SUBMENU,
                          json=d.SUBMENU_POST_PAYLOAD,
                          msg_already_exists=d.SUBMENU_ALREADY_EXISTS_MSG,
                          msg_not_found=d.SUBMENU_NOT_FOUND_MSG,
                          func_check_valid_response=u.check_created_submenu)
-    assert await get_submenu_crud.get_all() is not None
+    assert await get_submenu_repo.get_all() is not None
 
 
-async def test_dish_post(submenu, async_client, get_dish_crud):
-    assert await get_dish_crud.get_all() is None
+async def test_dish_post(submenu: c.Response, async_client: c.AsyncSession, get_dish_repo: c.DishRepository):
+    assert await get_dish_repo.get_all() is None
     await standard_tests(async_client, POST, d.ENDPOINT_DISH,
                          json=d.DISH_POST_PAYLOAD,
                          msg_already_exists=d.DISH_ALREADY_EXISTS_MSG,
                          msg_not_found=d.DISH_NOT_FOUND_MSG,
                          func_check_valid_response=u.check_dish)
-    assert await get_dish_crud.get_all() is not None
+    assert await get_dish_repo.get_all() is not None

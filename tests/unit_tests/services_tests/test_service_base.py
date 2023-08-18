@@ -4,11 +4,11 @@ from fastapi import HTTPException
 
 from app.repositories.redis_repository import RedisBaseRepository
 from app.services.services import BaseService
-from tests.conftest import pytest_mark_anyio
+from tests import conftest as c
 from tests.fixtures import data as d
 from tests.utils import CRUD, check_exception_info, compare, get_method
 
-pytestmark = pytest_mark_anyio
+pytestmark = c.pytest_mark_anyio
 
 
 class TestBaseService:
@@ -29,7 +29,7 @@ class TestBaseService:
         return await r.get_all() is None
 
     @pytest_asyncio.fixture
-    async def init(self, get_test_session, get_test_redis):
+    async def init(self, get_test_session: c.AsyncSession, get_test_redis: c.FakeRedis) -> None:
         self.base_service = BaseService(CRUD(self.model, get_test_session),
                                         RedisBaseRepository(get_test_redis))
         assert await self._db_empty()
@@ -42,17 +42,17 @@ class TestBaseService:
         assert await self._cache_empty()
         return obj
 
-    async def test_set_cache_obj(self, get_obj_from_db):
+    async def test_set_cache_obj(self, get_obj_from_db: d.Model) -> None:
         assert await self._cache_empty()
         await self.base_service.set_cache(get_obj_from_db)
         assert not await self._cache_empty()
 
-    async def test_set_cache_objs(self, get_obj_from_db):
+    async def test_set_cache_objs(self, get_obj_from_db: d.Model) -> None:
         assert await self._cache_empty()
         await self.base_service.set_cache([get_obj_from_db])
         assert not await self._cache_empty()
 
-    async def test_get(self, get_obj_from_db):
+    async def test_get(self, get_obj_from_db: d.Model) -> None:
         # test returns obj, cache == None, False
         assert await self._cache_empty()
         assert await self.base_service.get(get_obj_from_db.id + 1) == (None, False)
@@ -69,7 +69,7 @@ class TestBaseService:
         assert cache
         assert not await self._cache_empty()
 
-    async def test_get_or_404(self, get_obj_from_db):
+    async def test_get_or_404(self, get_obj_from_db: d.Model) -> None:
         # test raises exception if no object is found
         with pytest.raises(HTTPException):
             await self.base_service.get_or_404(get_obj_from_db.id + 1)
@@ -85,13 +85,13 @@ class TestBaseService:
         assert cache
         assert not await self._cache_empty()
 
-    async def test_get_all_returns_None(self, init):
+    async def test_get_all_returns_None(self, init) -> None:
         # test returns obj, cache == None, False
         assert await self._cache_empty()
         assert await self.base_service.get_all() == (None, False)
         assert await self._cache_empty()
 
-    async def test_get_all(self, get_obj_from_db):
+    async def test_get_all(self, get_obj_from_db) -> None:
         # test returns object from db, cache == False
         objs, cache = await self.base_service.get_all()
         assert isinstance(objs, list)
@@ -106,21 +106,21 @@ class TestBaseService:
         assert cache
         assert not await self._cache_empty()
 
-    async def test_create(self, init):
+    async def test_create(self, init) -> None:
         assert await self._db_empty()
         assert await self._cache_empty()
         await self.base_service.create(self.schema(**self.post_payload))
         assert not await self._db_empty()
         assert await self._cache_empty()
 
-    async def test_update(self, get_obj_from_db):
+    async def test_update(self, get_obj_from_db: d.Model) -> None:
         assert not await self._db_empty()
         assert await self._cache_empty()
         await self.base_service.update(get_obj_from_db.id, self.schema(**self.update_payload))
         assert not await self._db_empty()
         assert await self._cache_empty()
 
-    async def test_delete(self, get_obj_from_db):
+    async def test_delete(self, get_obj_from_db: d.Model) -> None:
         assert not await self._db_empty()
         assert await self._cache_empty()
         await self.base_service.delete(get_obj_from_db.id)
@@ -128,7 +128,7 @@ class TestBaseService:
         assert await self._cache_empty()
 
     @pytest.mark.parametrize('method_name', ('set_cache_create', 'set_cache_update', 'set_cache_delete'))
-    async def test_set_cache_xxx_raises_exc(self, init, method_name):
+    async def test_set_cache_xxx_raises_exc(self, init, method_name: str) -> None:
         with pytest.raises(NotImplementedError) as exc_info:
             await get_method(self.base_service, method_name)()
         check_exception_info(exc_info, "Method or function hasn't been implemented yet.")
