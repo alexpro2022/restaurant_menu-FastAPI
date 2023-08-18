@@ -93,7 +93,7 @@ async def task(session: AsyncSession, engine: AsyncEngine = engine, fname: Path 
     menus_file, submenus_file, dishes_file = read_file(fname)
     if not menus_file:
         return None
-    await init_repos()
+    await init_repos(session)
     return menus_file
 
 
