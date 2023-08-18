@@ -13,12 +13,12 @@ pytestmark = c.pytest_mark_anyio
 
 
 @pytest.mark.parametrize('endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU))
-async def test_not_allowed_method(async_client: c.AsyncClient, endpoint: str):
+async def test_not_allowed_method(async_client: c.AsyncClient, endpoint: str) -> None:
     await not_allowed_methods_test(async_client, (PUT,), endpoint)
 
 
 @pytest.mark.parametrize('endpoint', (d.ENDPOINT_DISH, d.ENDPOINT_MENU, d.ENDPOINT_SUBMENU, d.ENDPOINT_FULL_LIST))
-async def test_get_all_returns_empty_list(async_client: c.AsyncClient, endpoint: str):
+async def test_get_all_returns_empty_list(async_client: c.AsyncClient, endpoint: str) -> None:
     response = await async_client.get(endpoint)
     assert response.status_code == status.HTTP_200_OK, response.json()
     assert response.json() == []
@@ -67,7 +67,7 @@ async def test_standard(dish: c.Response,
         assert len(await repo.get_all()) == 1
 
 
-async def test_menu_post(async_client: c.AsyncSession, get_menu_repo: c.MenuRepository):
+async def test_menu_post(async_client: c.AsyncSession, get_menu_repo: c.MenuRepository) -> None:
     assert not await get_menu_repo.get_all()
     await standard_tests(async_client, POST, d.ENDPOINT_MENU,
                          json=d.MENU_POST_PAYLOAD,
@@ -77,7 +77,7 @@ async def test_menu_post(async_client: c.AsyncSession, get_menu_repo: c.MenuRepo
     assert await get_menu_repo.get_all()
 
 
-async def test_submenu_post(menu: c.Response, async_client: c.AsyncSession, get_submenu_repo: c.SubmenuRepository):
+async def test_submenu_post(menu: c.Response, async_client: c.AsyncSession, get_submenu_repo: c.SubmenuRepository) -> None:
     assert await get_submenu_repo.get_all() is None
     await standard_tests(async_client, POST, d.ENDPOINT_SUBMENU,
                          json=d.SUBMENU_POST_PAYLOAD,
@@ -87,7 +87,7 @@ async def test_submenu_post(menu: c.Response, async_client: c.AsyncSession, get_
     assert await get_submenu_repo.get_all() is not None
 
 
-async def test_dish_post(submenu: c.Response, async_client: c.AsyncSession, get_dish_repo: c.DishRepository):
+async def test_dish_post(submenu: c.Response, async_client: c.AsyncSession, get_dish_repo: c.DishRepository) -> None:
     assert await get_dish_repo.get_all() is None
     await standard_tests(async_client, POST, d.ENDPOINT_DISH,
                          json=d.DISH_POST_PAYLOAD,
