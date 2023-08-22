@@ -12,6 +12,7 @@ from app.repositories.redis_repository import RedisBaseRepository
 
 
 class BaseService:
+    """Base abstract service class."""
     MSG_NOT_IMPLEMENTED = "Method or function hasn't been implemented yet."
 
     def __init__(self, db: CRUDBaseRepository, redis: RedisBaseRepository):

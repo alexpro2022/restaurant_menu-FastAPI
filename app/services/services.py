@@ -1,4 +1,4 @@
-import typing
+from typing import Annotated
 
 from aioredis import Redis
 from fastapi import Depends
@@ -14,8 +14,8 @@ from app.repositories.db_repository import (
 from app.repositories.redis_repository import RedisBaseRepository
 from app.services.base import BaseService
 
-async_session = typing.Annotated[AsyncSession, Depends(get_async_session)]
-redis = typing.Annotated[Redis, Depends(get_aioredis)]
+async_session = Annotated[AsyncSession, Depends(get_async_session)]
+redis = Annotated[Redis, Depends(get_aioredis)]
 
 
 class MenuService(BaseService):
