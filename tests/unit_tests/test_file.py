@@ -82,13 +82,3 @@ async def test_init_repos(dish: c.Response,
                           get_test_session: c.AsyncSession,
                           get_test_redis: c.FakeRedis) -> None:
     await init_repos(get_test_session, FAKE_FILE_PATH, c.engine, get_test_redis)
-
-'''
-@pytest_mark_anyio
-async def test_task(get_test_session, get_menu_crud):
-    # assert await get_menu_crud.get_all() is None
-    # assert await _task(get_test_session, test_engine, FAKE_FILE_PATH) is None
-    write_file(FAKE_FILE_PATH)
-    assert await _task(get_test_session, test_engine, FAKE_FILE_PATH) == d.EXPECTED_MENU_FILE_CONTENT
-    # assert await get_menu_crud.get_all() is not None
-'''
