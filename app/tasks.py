@@ -82,9 +82,9 @@ async def init_repos(session: AsyncSession,
         await redis.flushall()
         await db_flush(engine)
         await fill_repos(menus,
-                         MenuService(session, redis),
-                         SubmenuService(session, redis),
-                         DishService(session, redis))
+                         MenuService(session, redis, None),
+                         SubmenuService(session, redis, None),
+                         DishService(session, redis, None))
 
 
 async def task(session: AsyncSession, engine: AsyncEngine = engine, fname: Path = FILE_PATH) -> list | None:

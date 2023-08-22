@@ -10,6 +10,11 @@ SUM_UPDATE_ITEM = 'Редактирование {}'
 SUM_DELETE_ITEM = 'Удаление {}'
 
 
+def delete_response(item_name: str) -> str:
+    return {'status': True, 'message': f'The {item_name} has been deleted'}
+
+
+'''
 async def get_item(item_id: int, service: BaseService, background_tasks: BackgroundTasks):
     item, cache = await service.get_or_404(item_id)
     if not cache:
@@ -62,3 +67,4 @@ async def get_all(parent_id: int,
         background_tasks.add_task(parent_service.set_cache, parent)
         background_tasks.add_task(service.set_cache, items)
     return items
+'''

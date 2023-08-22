@@ -116,14 +116,14 @@ async def get_test_redis() -> AsyncGenerator[FakeRedis, Any]:
 
 @pytest_asyncio.fixture
 async def get_menu_service(get_test_session: AsyncSession, get_test_redis: FakeRedis) -> Generator[MenuService, Any, None]:
-    yield MenuService(get_test_session, get_test_redis)
+    yield MenuService(get_test_session, get_test_redis, None)
 
 
 @pytest_asyncio.fixture
 async def get_submenu_service(get_test_session: AsyncSession, get_test_redis: FakeRedis) -> Generator[SubmenuService, Any, None]:
-    yield SubmenuService(get_test_session, get_test_redis)
+    yield SubmenuService(get_test_session, get_test_redis, None)
 
 
 @pytest_asyncio.fixture
 async def get_dish_service(get_test_session: AsyncSession, get_test_redis: FakeRedis) -> Generator[DishService, Any, None]:
-    yield DishService(get_test_session, get_test_redis)
+    yield DishService(get_test_session, get_test_redis, None)

@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from aioredis import Redis
-from fastapi import Depends
+from fastapi import Depends, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core import get_aioredis, get_async_session
@@ -19,10 +19,16 @@ redis = Annotated[Redis, Depends(get_aioredis)]
 
 
 class MenuService(BaseService):
-    def __init__(self, session: async_session, redis: redis):
-        super().__init__(MenuRepository(session), RedisBaseRepository(redis, 'menu'))
+    def __init__(self, session: async_session, redis: redis, bg_tasks: BackgroundTasks):
+        super().__init__(MenuRepository(session), RedisBaseRepository(redis, 'menu'), bg_tasks)
         self.submenu_redis = RedisBaseRepository(redis, 'submenu')
         self.dish_redis = RedisBaseRepository(redis, 'dish')
+
+    async def set_cache_create(self, menu: Menu) -> None:
+        await super().set_cache(menu)
+
+    async def set_cache_update(self, menu: Menu) -> None:
+        await super().set_cache(menu)
 
     async def set_cache_delete(self, menu: Menu) -> None:
         for submenu in menu.submenus:
@@ -33,8 +39,8 @@ class MenuService(BaseService):
 
 
 class SubmenuService(BaseService):
-    def __init__(self, session: async_session, redis: redis):
-        super().__init__(SubmenuRepository(session), RedisBaseRepository(redis, 'submenu'))
+    def __init__(self, session: async_session, redis: redis, bg_tasks: BackgroundTasks):
+        super().__init__(SubmenuRepository(session), RedisBaseRepository(redis, 'submenu'), bg_tasks)
         self.menu_db = MenuRepository(session)
         self.menu_redis = RedisBaseRepository(redis, 'menu')
         self.dish_redis = RedisBaseRepository(redis, 'dish')
@@ -43,6 +49,9 @@ class SubmenuService(BaseService):
         menu: Menu = await self.menu_db.get_or_404(pk=submenu.menu_id)
         for redis, item in ((self.menu_redis, menu), (self.redis, submenu)):
             await redis.set_obj(item)  # type: ignore [type-var]
+
+    async def set_cache_update(self, submenu: Submenu) -> None:
+        await super().set_cache(submenu)
 
     async def set_cache_delete(self, submenu: Submenu) -> None:
         for dish in submenu.dishes:
@@ -54,8 +63,8 @@ class SubmenuService(BaseService):
 
 
 class DishService(BaseService):
-    def __init__(self, session: async_session, redis: redis):
-        super().__init__(DishRepository(session), RedisBaseRepository(redis, 'dish'))
+    def __init__(self, session: async_session, redis: redis, bg_tasks: BackgroundTasks):
+        super().__init__(DishRepository(session), RedisBaseRepository(redis, 'dish'), bg_tasks)
         self.submenu_db = SubmenuRepository(session)
         self.submenu_redis = RedisBaseRepository(redis, 'submenu')
         self.menu_db = MenuRepository(session)
@@ -67,6 +76,9 @@ class DishService(BaseService):
         for redis, item in ((self.menu_redis, menu), (self.submenu_redis, submenu), (self.redis, dish)):
             await redis.set_obj(item)  # type: ignore [type-var]
         return dish
+
+    async def set_cache_update(self, dish: Dish) -> None:
+        await super().set_cache(dish)
 
     async def set_cache_delete(self, dish: Dish) -> None:
         submenu: Submenu = await self.submenu_db.get_or_404(pk=dish.submenu_id)

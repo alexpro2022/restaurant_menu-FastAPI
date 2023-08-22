@@ -1,4 +1,4 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter
 
 from app import schemas
 from app.api.endpoints import utils as u
@@ -17,14 +17,12 @@ SUM_DELETE_ITEM = u.SUM_DELETE_ITEM.format(NAME)
 
 @router.get(
     '/{menu_id}/submenus/{submenu_id}/dishes',
-    response_model=list[schemas.DishOut] | list,
+    response_model=list[schemas.DishOut],
     summary=SUM_ALL_ITEMS,
     description=(f'{settings.ALL_USERS} {SUM_ALL_ITEMS}'))
-async def get_all_(submenu_id: int,
-                   submenu_service: submenu_service,
-                   dish_service: dish_service,
-                   background_tasks: BackgroundTasks):
-    return await u.get_all(submenu_id, submenu_service, dish_service, 'dishes', background_tasks)
+async def get_all_(submenu_id: int, submenu_service: submenu_service):
+    submenu = await submenu_service.get(submenu_id)  # type: ignore
+    return [] if submenu is None else submenu.dishes  # type: ignore
 
 
 @router.post(
@@ -36,10 +34,9 @@ async def get_all_(submenu_id: int,
 async def create_(submenu_id: int,
                   payload: schemas.DishIn,
                   submenu_service: submenu_service,
-                  dish_service: dish_service,
-                  background_tasks: BackgroundTasks):
-    submenu, _ = await submenu_service.get_or_404(submenu_id)
-    return await u.create(submenu.id, payload, dish_service, background_tasks)
+                  dish_service: dish_service):
+    submenu = await submenu_service.get_or_404(submenu_id)
+    return await dish_service.create(payload, extra_data=submenu.id)
 
 
 @router.get(
@@ -47,10 +44,8 @@ async def create_(submenu_id: int,
     response_model=schemas.DishOut,
     summary=SUM_ITEM,
     description=(f'{settings.ALL_USERS} {SUM_ITEM}'))
-async def get_(item_id: int,
-               dish_service: dish_service,
-               background_tasks: BackgroundTasks):
-    return await u.get_item(item_id, dish_service, background_tasks)
+async def get_(item_id: int, dish_service: dish_service):
+    return await dish_service.get_or_404(item_id)
 
 
 @router.patch(
@@ -60,16 +55,14 @@ async def get_(item_id: int,
     description=(f'{settings.AUTH_ONLY} {SUM_UPDATE_ITEM}'))
 async def update_(item_id: int,
                   payload: schemas.DishIn,
-                  dish_service: dish_service,
-                  background_tasks: BackgroundTasks):
-    return await u.update(item_id, payload, dish_service, background_tasks)
+                  dish_service: dish_service):
+    return await dish_service.update(item_id, payload)
 
 
 @router.delete(
     '/{menu_id}/submenus/{submenu_id}/dishes/{item_id}',
     summary=SUM_DELETE_ITEM,
     description=(f'{settings.SUPER_ONLY} {SUM_DELETE_ITEM}'))
-async def delete_(item_id: int,
-                  dish_service: dish_service,
-                  background_tasks: BackgroundTasks):
-    return await u.delete(item_id, 'dish', dish_service, background_tasks)
+async def delete_(item_id: int, dish_service: dish_service):
+    await dish_service.delete(item_id)
+    return u.delete_response('dish')
