@@ -12,6 +12,33 @@ from tests.utils import compare_lists
 FAKE_FILE_PATH = Path('tests/fixtures/Menu.xlsx')
 
 
+async def _check_repos(get_menu_service: c.MenuService,
+                       get_submenu_service: c.SubmenuService,
+                       get_dish_service: c.DishService) -> None:
+    menus_db = await get_menu_service.db.get_all()
+    assert menus_db is not None
+    assert len(menus_db) == 2
+    for menu in menus_db:
+        assert menu.submenus_count == 2
+        assert menu.dishes_count == 6
+    # compare_lists(menus_db, await get_menu_service.redis.get_all())
+    assert await get_menu_service.redis.get_all() is None
+
+    submenus_db = await get_submenu_service.db.get_all()
+    assert submenus_db is not None
+    assert len(submenus_db) == 4
+    for submenu in submenus_db:
+        assert submenu.dishes_count == 3
+    # compare_lists(submenus_db, await get_submenu_service.redis.get_all())
+    assert await get_submenu_service.redis.get_all() is None
+
+    dishes_db = await get_dish_service.db.get_all()
+    assert dishes_db is not None
+    assert len(dishes_db) == 12
+    # compare_lists(dishes_db, await get_dish_service.redis.get_all())
+    assert await get_dish_service.redis.get_all() is None
+
+
 def write_file(fname: str, edit: bool = False) -> None:
     wb = load_workbook(filename=fname)
     ws = wb['Лист1']
@@ -57,28 +84,19 @@ async def test_fill_repos(get_menu_service: c.MenuService,
                           get_dish_service: c.DishService) -> None:
     assert await get_menu_service.db.get_all() is None
     assert await get_menu_service.redis.get_all() is None
+    assert await get_menu_service.get_all() is None
     menus, _, _ = read_file(FAKE_FILE_PATH)
     await fill_repos(menus, get_menu_service, get_submenu_service, get_dish_service)
-
-    menus_db = await get_menu_service.db.get_all()
-    assert menus_db is not None
-    assert len(menus_db) == 2
-    compare_lists(menus_db, await get_menu_service.redis.get_all())
-
-
-    submenus_db = await get_submenu_service.db.get_all()
-    assert submenus_db is not None
-    assert len(submenus_db) == 4
-    compare_lists(submenus_db, await get_submenu_service.redis.get_all())
-
-    dishes_db = await get_dish_service.db.get_all()
-    assert dishes_db is not None
-    assert len(dishes_db) == 12
-    compare_lists(dishes_db, await get_dish_service.redis.get_all())
+    await _check_repos(get_menu_service, get_submenu_service, get_dish_service)
 
 
 @c.pytest_mark_anyio
 async def test_init_repos(dish: c.Response,
                           get_test_session: c.AsyncSession,
-                          get_test_redis: c.FakeRedis) -> None:
-    await init_repos(get_test_session, FAKE_FILE_PATH, c.engine, get_test_redis)
+                          get_test_redis: c.FakeRedis,
+                          get_menu_service: c.MenuService,
+                          get_submenu_service: c.SubmenuService,
+                          get_dish_service: c.DishService) -> None:
+    menus = await init_repos(get_test_session, FAKE_FILE_PATH, c.engine, get_test_redis)
+    assert menus == d.EXPECTED_MENU_FILE_CONTENT
+    await _check_repos(get_menu_service, get_submenu_service, get_dish_service)

@@ -168,3 +168,4 @@ _test*
 *decorators.py
 redis
 infra/local/admin
+.~lock.*.xlsx#

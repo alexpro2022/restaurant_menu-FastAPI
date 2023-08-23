@@ -92,13 +92,27 @@ def get_method(instance: typing.Any, method_name: str):
 
 
 def compare(left: c.Base, right: c.Base) -> None:
-    assert left and right
-    assert left.__table__.columns == right.__table__.columns
+    def _get_attrs(item) -> tuple[str]:
+        item_attrs = item.__dict__
+        try:
+            item_attrs.pop('_sa_instance_state')
+        except KeyError:
+            pass
+        return item_attrs
+    assert left
+    assert right
+    left_attrs = _get_attrs(left)
+    right_attrs = _get_attrs(right)
+    assert left_attrs == right_attrs
+    '''assert left.__table__.columns == right.__table__.columns
     for c in left.__table__.columns:
         assert getattr(left, c.key) == getattr(right, c.key)
-
+    '''
+    
 
 def compare_lists(left: list[c.Base], right: list[c.Base]) -> None:
+    assert left
+    assert right    
     size_left = len(left)
     assert size_left == len(right)
     for i in range(size_left):

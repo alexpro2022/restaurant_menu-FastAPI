@@ -20,9 +20,9 @@ redis = Annotated[Redis, Depends(get_aioredis)]
 
 class MenuService(BaseService):
     def __init__(self, session: async_session, redis: redis, bg_tasks: BackgroundTasks):
-        super().__init__(MenuRepository(session), RedisBaseRepository(redis, 'menu'), bg_tasks)
-        self.submenu_redis = RedisBaseRepository(redis, 'submenu')
-        self.dish_redis = RedisBaseRepository(redis, 'dish')
+        super().__init__(MenuRepository(session), RedisBaseRepository(redis, 'menu:'), bg_tasks)
+        self.submenu_redis = RedisBaseRepository(redis, 'submenu:')
+        self.dish_redis = RedisBaseRepository(redis, 'dish:')
 
     async def set_cache_create(self, menu: Menu) -> None:
         await super().set_cache(menu)
@@ -40,10 +40,10 @@ class MenuService(BaseService):
 
 class SubmenuService(BaseService):
     def __init__(self, session: async_session, redis: redis, bg_tasks: BackgroundTasks):
-        super().__init__(SubmenuRepository(session), RedisBaseRepository(redis, 'submenu'), bg_tasks)
+        super().__init__(SubmenuRepository(session), RedisBaseRepository(redis, 'submenu:'), bg_tasks)
         self.menu_db = MenuRepository(session)
-        self.menu_redis = RedisBaseRepository(redis, 'menu')
-        self.dish_redis = RedisBaseRepository(redis, 'dish')
+        self.menu_redis = RedisBaseRepository(redis, 'menu:')
+        self.dish_redis = RedisBaseRepository(redis, 'dish:')
 
     async def set_cache_create(self, submenu: Submenu) -> None:
         menu: Menu = await self.menu_db.get_or_404(pk=submenu.menu_id)
@@ -64,23 +64,23 @@ class SubmenuService(BaseService):
 
 class DishService(BaseService):
     def __init__(self, session: async_session, redis: redis, bg_tasks: BackgroundTasks):
-        super().__init__(DishRepository(session), RedisBaseRepository(redis, 'dish'), bg_tasks)
+        super().__init__(DishRepository(session), RedisBaseRepository(redis, 'dish:'), bg_tasks)
         self.submenu_db = SubmenuRepository(session)
-        self.submenu_redis = RedisBaseRepository(redis, 'submenu')
+        self.submenu_redis = RedisBaseRepository(redis, 'submenu:')
         self.menu_db = MenuRepository(session)
-        self.menu_redis = RedisBaseRepository(redis, 'menu')
+        self.menu_redis = RedisBaseRepository(redis, 'menu:')
 
     async def set_cache_create(self, dish: Dish) -> None:
         submenu: Submenu = await self.submenu_db.get_or_404(pk=dish.submenu_id)
         menu: Menu = await self.menu_db.get_or_404(pk=submenu.menu_id)
         for redis, item in ((self.menu_redis, menu), (self.submenu_redis, submenu), (self.redis, dish)):
             await redis.set_obj(item)  # type: ignore [type-var]
-        return dish
 
     async def set_cache_update(self, dish: Dish) -> None:
         await super().set_cache(dish)
 
     async def set_cache_delete(self, dish: Dish) -> None:
+        await self.redis.delete_obj(dish)
         submenu: Submenu = await self.submenu_db.get_or_404(pk=dish.submenu_id)
         menu: Menu = await self.menu_db.get_or_404(pk=submenu.menu_id)
         for redis, item in ((self.menu_redis, menu), (self.submenu_redis, submenu)):

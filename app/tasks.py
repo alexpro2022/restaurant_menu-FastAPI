@@ -48,7 +48,7 @@ def read_file(fname: str) -> tuple[list[dict]]:
 
 def is_modified(fname: str) -> bool:
     mod_time = dt.fromtimestamp(fname.stat().st_mtime)
-    return (dt.now() - mod_time).total_seconds() < TIME_INTERVAL
+    return (dt.now() - mod_time).total_seconds() <= TIME_INTERVAL
 
 
 async def fill_repos(menus: list[dict],
@@ -68,9 +68,6 @@ async def fill_repos(menus: list[dict],
                         await dish_service.db.create(
                             DishIn(title=dish['title'],
                                    description=dish['description'], price=dish['price']), extra_data=created_submenu.id)
-    await menu_service.set_cache(await menu_service.db.get_all())
-    await submenu_service.set_cache(await submenu_service.db.get_all())
-    await dish_service.set_cache(await dish_service.db.get_all())
 
 
 async def init_repos(session: AsyncSession,
@@ -78,34 +75,29 @@ async def init_repos(session: AsyncSession,
                      engine: AsyncEngine = engine,
                      redis: aioredis.Redis = get_aioredis()) -> None:
     menus, _, _ = read_file(fname)
-    if menus:
-        await redis.flushall()
-        await db_flush(engine)
-        await fill_repos(menus,
-                         MenuService(session, redis, None),
-                         SubmenuService(session, redis, None),
-                         DishService(session, redis, None))
+    if not menus:
+        return None
+    await redis.flushall()
+    await db_flush(engine)
+    await fill_repos(menus,
+                     MenuService(session, redis, None),
+                     SubmenuService(session, redis, None),
+                     DishService(session, redis, None))
+    return menus
 
 
 async def task(session: AsyncSession, engine: AsyncEngine = engine, fname: Path = FILE_PATH) -> list | None:
     if not is_modified(fname):
         return None
-    menus_file, submenus_file, dishes_file = read_file(fname)
-    if not menus_file:
-        return None
-    await init_repos(session)
-    return menus_file
-
-
-client = httpx.Client()
+    return await init_repos(session)
 
 
 @celery.task(name='celery_worker.synchronize')
 def synchronize():
-    response = client.get('http://web:8000/api/v1/menus_synchronize')
+    response = httpx.Client().get('http://web:8000/api/v1/menus_synchronize')
     return response.json()
 
 
 @celery.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(TIME_INTERVAL, synchronize.s(), name='add every 15')
+    sender.add_periodic_task(TIME_INTERVAL, synchronize.s(), name=f'add every {TIME_INTERVAL}')

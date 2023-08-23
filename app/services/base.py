@@ -39,13 +39,13 @@ class BaseService:
         await self._add_bg_task(self.set_cache, obj)
         return obj
 
-    async def get(self, pk: int) -> tuple[ModelType, bool]:
+    async def get(self, pk: int) -> ModelType | None:
         return await self.__get('get', pk)
 
-    async def get_or_404(self, pk: int) -> tuple[ModelType, bool]:
+    async def get_or_404(self, pk: int) -> ModelType:
         return await self.__get('get_or_404', pk)
 
-    async def get_all(self, exception: bool = False) -> tuple[list[ModelType] | None, bool]:
+    async def get_all(self, exception: bool = False) -> list[ModelType] | None:
         return await self.__get()
 
     async def set_cache_create(self, obj) -> None:

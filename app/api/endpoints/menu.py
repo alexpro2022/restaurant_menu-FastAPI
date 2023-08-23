@@ -79,17 +79,3 @@ async def delete_(item_id: int, menu_service: menu_service):
 @router.get('_synchronize', include_in_schema=False)
 async def synchronize(session: AsyncSession = Depends(get_async_session)):
     return await task(session)
-
-
-'''
-@router.get(
-    '-full-list',
-    response_model=list[dict],
-    summary=SUM_FULL_LIST,
-    description=(f'{settings.SUPER_ONLY} {SUM_FULL_LIST}'))
-async def get_full_list(menu_service: menu_service,
-                        background_tasks: BackgroundTasks):
-    return [jsonable_encoder(m) for m in
-            await get_all_(menu_service, background_tasks)]
-
-'''
