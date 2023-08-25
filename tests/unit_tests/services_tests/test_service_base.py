@@ -28,6 +28,11 @@ class TestBaseService:
         r = self.base_service.redis
         assert isinstance(r, RedisBaseRepository)
         return await r.get_all() is None
+    
+    async def _check_cache_equals_db(self) -> None:
+        db = await self.base_service.db.get_all()
+        cache = await self.base_service.redis.get_all()
+        compare_lists(db, cache)
 
     @pytest_asyncio.fixture
     async def init(self, get_test_session: c.AsyncSession, get_test_redis: c.FakeRedis) -> None:
@@ -47,11 +52,13 @@ class TestBaseService:
         assert await self._cache_empty()
         await self.base_service.set_cache(get_obj_from_db)
         assert not await self._cache_empty()
+        await self._check_cache_equals_db()
 
     async def test_set_cache_objs(self, get_obj_from_db: d.Model) -> None:
         assert await self._cache_empty()
         await self.base_service.set_cache([get_obj_from_db])
         assert not await self._cache_empty()
+        await self._check_cache_equals_db()
 
     async def test_get_all_returns_None(self, init) -> None:
         assert await self._cache_empty()
@@ -73,22 +80,24 @@ class TestBaseService:
         assert await self._cache_empty()
         objs_db = await self.base_service.get_all()
         assert not await self._cache_empty()
-        objs_cache = await self.base_service.get_all()
+        await self._check_cache_equals_db()
+        # below is redandance but kept just in case
+        objs_cache = await self.base_service.redis.get_all()
         assert isinstance(objs_db, list)
         assert isinstance(objs_cache, list)
         compare(objs_db[0], get_obj_from_db)
         compare(objs_cache[0], get_obj_from_db)
-        compare_lists(objs_db, objs_cache)
 
     @pytest.mark.parametrize('method_name', ('get', 'get_or_404'))
     async def test_get_methods_fill_cache(self, method_name, get_obj_from_db):
         assert await self._cache_empty()
         obj_db = await get_method(self.base_service, method_name)(get_obj_from_db.id)
         assert not await self._cache_empty()
+        await self._check_cache_equals_db()
+        # below is redandance but kept just in case        
         obj_cache = await get_method(self.base_service, method_name)(get_obj_from_db.id)
         compare(obj_db, get_obj_from_db)
         compare(obj_cache, get_obj_from_db)
-        compare(obj_db, obj_cache)
 
     @pytest.mark.parametrize('method_name', ('set_cache_create', 'set_cache_update', 'set_cache_delete'))
     async def test_set_cache_xxx_raises_exc(self, init, method_name: str) -> None:

@@ -103,10 +103,6 @@ def compare(left: c.Base, right: c.Base) -> None:
         return item_attrs
     diff = DeepDiff(_get_attrs(left), _get_attrs(right), ignore_order=True)
     assert not diff, diff
-    '''assert left.__table__.columns == right.__table__.columns
-    for c in left.__table__.columns:
-        assert getattr(left, c.key) == getattr(right, c.key)
-    '''
     
 
 def compare_lists(left: list[c.Base], right: list[c.Base]) -> None:
