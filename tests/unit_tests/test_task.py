@@ -12,31 +12,34 @@ from tests.utils import compare_lists
 FAKE_FILE_PATH = Path('tests/fixtures/Menu.xlsx')
 
 
+async def service_fills_cache_from_db(service) -> list:
+    assert await service.redis.get_all() is None
+    items_db = await service.get_all()
+    assert items_db is not None
+    items_cache = await service.redis.get_all()
+    assert items_cache is not None
+    compare_lists(items_db, items_cache)
+    return items_cache
+
+
 async def _check_repos(get_menu_service: c.MenuService,
                        get_submenu_service: c.SubmenuService,
                        get_dish_service: c.DishService) -> None:
-    menus_db = await get_menu_service.db.get_all()
-    assert menus_db is not None
-    assert len(menus_db) == 2
-    for menu in menus_db:
+    
+    menus = await service_fills_cache_from_db(get_menu_service)
+    assert len(menus) == 2
+    for menu in menus:
         assert menu.submenus_count == 2
         assert menu.dishes_count == 6
-    # compare_lists(menus_db, await get_menu_service.redis.get_all())
-    assert await get_menu_service.redis.get_all() is None
 
-    submenus_db = await get_submenu_service.db.get_all()
-    assert submenus_db is not None
-    assert len(submenus_db) == 4
-    for submenu in submenus_db:
+    submenus = await service_fills_cache_from_db(get_submenu_service)
+    assert len(submenus) == 4
+    for submenu in submenus:
         assert submenu.dishes_count == 3
-    # compare_lists(submenus_db, await get_submenu_service.redis.get_all())
-    assert await get_submenu_service.redis.get_all() is None
 
-    dishes_db = await get_dish_service.db.get_all()
-    assert dishes_db is not None
-    assert len(dishes_db) == 12
-    # compare_lists(dishes_db, await get_dish_service.redis.get_all())
-    assert await get_dish_service.redis.get_all() is None
+    dishes = await service_fills_cache_from_db(get_dish_service)
+    assert len(dishes) == 12
+
 
 
 def write_file(fname: str, edit: bool = False) -> None:

@@ -19,6 +19,8 @@ from app.tasks import FILE_PATH  # noqa
 
 from .fixtures import data as d
 
+pytest_plugins = ("celery.contrib.pytest", )
+
 pytest_mark_anyio = pytest.mark.asyncio
 # pytest_mark_anyio = pytest.mark.anyio
 

@@ -13,10 +13,6 @@ from app.services import DishService, MenuService, SubmenuService
 FILE_PATH = Path('admin/Menu.xlsx')
 TIME_INTERVAL = 15.0
 
-celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
-
-celery.conf.timezone = 'UTC'
-
 
 def read_file(fname: str) -> tuple[list[dict]]:
     wb = load_workbook(filename=fname)
@@ -90,6 +86,17 @@ async def task(session: AsyncSession, engine: AsyncEngine = engine, fname: Path 
     if not is_modified(fname):
         return None
     return await init_repos(session)
+
+
+celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
+'''celery.conf.beat_schedule = {
+    F'synchronize-every-{TIME_INTERVAL}-seconds': {
+        'task': 'tasks.synchronize',
+        'schedule': TIME_INTERVAL,
+        # 'args': ()
+    },
+}'''
+celery.conf.timezone = 'UTC'
 
 
 @celery.task(name='celery_worker.synchronize')

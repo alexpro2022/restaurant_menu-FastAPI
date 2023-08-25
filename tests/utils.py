@@ -1,5 +1,6 @@
 import typing
 
+from deepdiff import DeepDiff
 from fastapi import status
 
 from tests import conftest as c
@@ -93,17 +94,15 @@ def get_method(instance: typing.Any, method_name: str):
 
 def compare(left: c.Base, right: c.Base) -> None:
     def _get_attrs(item) -> tuple[str]:
-        item_attrs = item.__dict__
+        assert item
+        item_attrs = vars(item)  # .__dict__
         try:
             item_attrs.pop('_sa_instance_state')
         except KeyError:
             pass
         return item_attrs
-    assert left
-    assert right
-    left_attrs = _get_attrs(left)
-    right_attrs = _get_attrs(right)
-    assert left_attrs == right_attrs
+    diff = DeepDiff(_get_attrs(left), _get_attrs(right), ignore_order=True)
+    assert not diff, diff
     '''assert left.__table__.columns == right.__table__.columns
     for c in left.__table__.columns:
         assert getattr(left, c.key) == getattr(right, c.key)
