@@ -115,7 +115,7 @@
 [![asyncpg](https://img.shields.io/badge/-asyncpg-464646?logo=PostgreSQL)](https://pypi.org/project/asyncpg/)
 [![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-v2.0-blue?logo=sqlalchemy)](https://www.sqlalchemy.org/)
 [![Alembic](https://img.shields.io/badge/-Alembic-464646?logo=alembic)](https://alembic.sqlalchemy.org/en/latest/)
-[![aioredis](https://img.shields.io/badge/-aioredis-464646?logo=aioredis)](https://aioredis.readthedocs.io/en/latest/)
+[![aioredis](https://img.shields.io/badge/-aioredis-464646?logo=redis)](https://aioredis.readthedocs.io/en/latest/)
 [![celery](https://img.shields.io/badge/-Celery-464646?logo=celery)](https://docs.celeryq.dev/en/stable/)
 [![rabbitmq](https://img.shields.io/badge/-RabbitMQ-464646?logo=rabbitmq)](https://www.rabbitmq.com/)
 [![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
@@ -123,6 +123,7 @@
 [![Nginx](https://img.shields.io/badge/-NGINX-464646?logo=NGINX)](https://nginx.org/ru/)
 [![Pytest](https://img.shields.io/badge/-Pytest-464646?logo=Pytest)](https://docs.pytest.org/en/latest/)
 [![Pytest-asyncio](https://img.shields.io/badge/-Pytest--asyncio-464646?logo=Pytest-asyncio)](https://pypi.org/project/pytest-asyncio/)
+[![deepdiff](https://img.shields.io/badge/-deepdiff-464646?logo=deepdiff)](https://zepworks.com/deepdiff/6.3.1/diff.html)
 
 [⬆️Оглавление](#оглавление)
 
@@ -216,19 +217,19 @@ docker rmi restaurant_menu_test_scenario
 
 1. Из корневой директории проекта выполните команду:
 ```bash
-docker compose -f infra/local/docker-compose.yml up -d --build
+docker compose -f infra/local/docker-compose.yml --env-file .env up -d --build
 ```
-Проект будет развернут в трех docker-контейнерах (db, web, nginx) по адресу http://127.0.0.1:8000.
+Проект будет развернут в docker-контейнерах по адресу http://127.0.0.1:8000.
 
 Администрирование приложения может быть осуществлено через Swagger доступный по адресу http://127.0.0.1:8000/docs .
 
 2. Остановить docker и удалить контейнеры можно командой из корневой директории проекта:
 ```bash
-docker compose -f infra/local/docker-compose.yml down
+docker compose -f infra/local/docker-compose.yml --env-file .env down
 ```
 Если также необходимо удалить том базы данных:
 ```bash
-docker compose -f infra/local/docker-compose.yml down -v
+docker compose -f infra/local/docker-compose.yml --env-file .env down -v
 ```
 
 [⬆️Оглавление](#оглавление)

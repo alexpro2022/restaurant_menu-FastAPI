@@ -1,9 +1,9 @@
 from pathlib import Path
-
+import pytest
 from openpyxl import load_workbook
 
 from app.core import db_flush
-from app.tasks import task, fill_repos, is_modified, read_file, init_repos
+from app.tasks import celery_task, task, fill_repos, is_modified, read_file, init_repos, synchronize
 
 from tests import conftest as c
 from tests.fixtures import data as d
@@ -77,6 +77,7 @@ async def test_db_flush(dish: c.Response,
     assert await get_dish_repo.get_all() is not None
     await db_flush(c.engine)
     assert await get_menu_repo.get_all() is None
+    # below is redundance but kept just in case
     assert await get_submenu_repo.get_all() is None
     assert await get_dish_repo.get_all() is None
 
@@ -102,4 +103,21 @@ async def test_init_repos(dish: c.Response,
                           get_dish_service: c.DishService) -> None:
     menus = await init_repos(get_test_session, FAKE_FILE_PATH, c.engine, get_test_redis)
     assert menus == d.EXPECTED_MENU_FILE_CONTENT
+    await _check_repos(get_menu_service, get_submenu_service, get_dish_service)
+
+
+@c.pytest_mark_anyio
+async def test_synchronize_task(celery_app, celery_worker, get_test_session,
+                          get_menu_service: c.MenuService,
+                          get_submenu_service: c.SubmenuService,
+                          get_dish_service: c.DishService):
+    @celery_app.task
+    def _celery_task():
+        return celery_task(get_test_session)
+
+    celery_worker.reload()
+    # _sync.delay()  # .get(timeout=10)
+    result = _celery_task.delay()
+    # print(result)
+    #assert False
     await _check_repos(get_menu_service, get_submenu_service, get_dish_service)

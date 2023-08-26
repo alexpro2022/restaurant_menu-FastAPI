@@ -5,13 +5,13 @@ import httpx
 from celery import Celery
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-
-from app.core import db_flush, engine, get_aioredis
+import asyncio
+from app.core import AsyncSessionLocal, db_flush, engine, get_aioredis, get_async_session, settings
 from app.schemas import DishIn, MenuIn, SubmenuIn
 from app.services import DishService, MenuService, SubmenuService
 
 FILE_PATH = Path('admin/Menu.xlsx')
-TIME_INTERVAL = 15.0
+TIME_INTERVAL = settings.celery_task_period
 
 
 def read_file(fname: str) -> tuple[list[dict]]:
@@ -82,29 +82,46 @@ async def init_repos(session: AsyncSession,
     return menus
 
 
-async def task(session: AsyncSession, engine: AsyncEngine = engine, fname: Path = FILE_PATH) -> list | None:
+async def task(session: AsyncSession,
+               engine: AsyncEngine = engine,
+               fname: Path = FILE_PATH) -> list | None:
     if not is_modified(fname):
         return None
     return await init_repos(session)
 
 
-celery = Celery('tasks', broker='amqp://guest:guest@rabbitmq:5672')
-'''celery.conf.beat_schedule = {
-    F'synchronize-every-{TIME_INTERVAL}-seconds': {
-        'task': 'tasks.synchronize',
+celery = Celery('tasks', broker=settings.celery_broker_url)
+# 'amqp://guest:guest@rabbitmq:5672')
+celery.conf.beat_schedule = {
+    f'synchronize-every-{TIME_INTERVAL}-seconds': {
+        'task': 'app.tasks.synchronize',
         'schedule': TIME_INTERVAL,
         # 'args': ()
     },
-}'''
+}
 celery.conf.timezone = 'UTC'
 
 
+'''
+session = AsyncSessionLocal()
+print(type(session))
+assert isinstance(session, AsyncSession)
+
+
 @celery.task(name='celery_worker.synchronize')
+def celery_task(session=session):
+    return asyncio.run(task(session))
+'''
+
+
+@celery.task
 def synchronize():
     response = httpx.Client().get('http://web:8000/api/v1/menus_synchronize')
     return response.json()
 
 
+'''
 @celery.on_after_configure.connect
 def setup_periodic_tasks(sender, **kwargs):
     sender.add_periodic_task(TIME_INTERVAL, synchronize.s(), name=f'add every {TIME_INTERVAL}')
+'''
