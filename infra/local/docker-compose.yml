@@ -36,10 +36,10 @@ services:
 
   flower:
     image: mher/flower
-    #environment:
+    #environment:  left for memory:)
     #  - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-    ports:
-      - $FLOWER_PORT:$FLOWER_PORT
+    ports:  # examples of good practices:)
+      - ${FLOWER_PORT:-5555}:${FLOWER_PORT:?error}
     depends_on:
       - rabbitmq
     env_file:
