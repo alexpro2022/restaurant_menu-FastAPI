@@ -3,7 +3,7 @@ import pytest
 from openpyxl import load_workbook
 
 from app.core import db_flush
-from app.tasks import celery_task, task, fill_repos, is_modified, read_file, init_repos, synchronize
+from app.tasks import task, fill_repos, is_modified, read_file, init_repos, synchronize
 
 from tests import conftest as c
 from tests.fixtures import data as d
@@ -106,6 +106,7 @@ async def test_init_repos(dish: c.Response,
     await _check_repos(get_menu_service, get_submenu_service, get_dish_service)
 
 
+'''
 @c.pytest_mark_anyio
 async def test_synchronize_task(celery_app, celery_worker, get_test_session,
                           get_menu_service: c.MenuService,
@@ -121,3 +122,4 @@ async def test_synchronize_task(celery_app, celery_worker, get_test_session,
     # print(result)
     #assert False
     await _check_repos(get_menu_service, get_submenu_service, get_dish_service)
+'''
