@@ -13,11 +13,11 @@ class Settings(BaseSettings):
     app_description: str = DEFAULT_STR
     secret_key: str = DEFAULT_STR
     database_url: str = 'sqlite+aiosqlite:///./fastapi.db'
-    redis_url: str  # = 'redis://redis:6379'
+    redis_url: str = 'redis://redis:6379'
     redis_expire: int = 3600
-    celery_broker_url: str
+    rabbitmq_port: int = 5672
+    celery_broker_url: str = f'amqp://guest:guest@rabbitmq:{rabbitmq_port}//'
     celery_task_period: int = 15
-    rabbitmq_port: int
 
     class Config:
         env_file = '.env'
