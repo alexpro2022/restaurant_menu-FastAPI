@@ -189,7 +189,7 @@ nano .env
 
 Из корневой директории проекта выполните команду:
 ```bash
-docker build -f test.Dockerfile -t restaurant_menu_tests . && \
+docker build -f ./docker/test.Dockerfile -t restaurant_menu_tests . && \
 docker run --name tests restaurant_menu_tests && \
 docker container rm tests && \
 docker rmi restaurant_menu_tests
@@ -203,7 +203,7 @@ docker rmi restaurant_menu_tests
 
 Из корневой директории проекта выполните команду:
 ```bash
-docker build -f test_scenario.Dockerfile -t restaurant_menu_test_scenario . && \
+docker build -f ./docker/test_scenario.Dockerfile -t restaurant_menu_test_scenario . && \
 docker run --name test_scenario restaurant_menu_test_scenario && \
 docker container rm test_scenario && \
 docker rmi restaurant_menu_test_scenario

@@ -16,7 +16,9 @@ services:
       - ../../.env      
 
   web:
-    build: ../..
+    build: 
+      context: ../..
+      dockerfile: ./docker/Dockerfile
     command: bash -c "alembic upgrade head && uvicorn app.main:app --host=0.0.0.0"
     restart: always
     depends_on:
@@ -46,7 +48,9 @@ services:
       - ../../.env        
 
   celery_worker:
-    build: ../..
+    build:
+      context: ../..
+      dockerfile: ./docker/Dockerfile
     # command: bash -c "celery -A app.tasks beat && celery -A app.tasks worker --loglevel=debug"
     command: bash -c "celery -A app.tasks worker -B --loglevel=debug"
     links:
