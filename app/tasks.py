@@ -85,7 +85,7 @@ async def task(session: AsyncSession,
                engine: AsyncEngine = engine,
                fname: Path = FILE_PATH) -> list | None:
     if not is_modified(fname):
-        return None
+        return 'Меню не изменялось. Выход из фоновой задачи...'
     return await init_repos(session)
 
 
