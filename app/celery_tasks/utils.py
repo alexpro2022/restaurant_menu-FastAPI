@@ -1,13 +1,12 @@
 from datetime import datetime as dt
 from pathlib import Path
 import aioredis
-from celery import Celery
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
-import asyncio
-from app.core import AsyncSessionLocal, db_flush, engine, get_aioredis, settings
+from app.core import db_flush, engine, get_aioredis, settings
 from app.schemas import DishIn, MenuIn, SubmenuIn
 from app.services import DishService, MenuService, SubmenuService
+
 
 FILE_PATH = Path('admin/Menu.xlsx')
 TIME_INTERVAL = settings.celery_task_period
@@ -79,31 +78,3 @@ async def init_repos(session: AsyncSession,
                      SubmenuService(session, redis, None),
                      DishService(session, redis, None))
     return menus
-
-
-async def task(session: AsyncSession,
-               engine: AsyncEngine = engine,
-               fname: Path = FILE_PATH) -> list | None:
-    if not is_modified(fname):
-        return 'Меню не изменялось. Выход из фоновой задачи...'
-    return await init_repos(session)
-
-
-async def celery_task():
-    async with AsyncSessionLocal() as session:
-        return await task(session)
-
-
-celery = Celery('tasks', broker=settings.celery_broker_url)
-celery.conf.beat_schedule = {
-    f'synchronize-every-{TIME_INTERVAL}-seconds': {
-        'task': 'app.tasks.synchronize',
-        'schedule': TIME_INTERVAL,
-    },
-}
-celery.conf.timezone = 'Europe/Moscow'
-
-
-@celery.task
-def synchronize():
-    return asyncio.get_event_loop().run_until_complete(celery_task())

@@ -3,11 +3,13 @@ import pytest
 from openpyxl import load_workbook
 
 from app.core import db_flush
-from app.tasks import task, fill_repos, is_modified, read_file, init_repos, synchronize
+from app.celery_tasks.utils import fill_repos, is_modified, read_file, init_repos
 
 from tests import conftest as c
 from tests.fixtures import data as d
 from tests.utils import compare_lists
+from app.celery_tasks.tasks import synchronize
+
 
 FAKE_FILE_PATH = Path('tests/fixtures/Menu.xlsx')
 
@@ -106,7 +108,16 @@ async def test_init_repos(dish: c.Response,
     await _check_repos(get_menu_service, get_submenu_service, get_dish_service)
 
 
+def test_task_name():
+    assert synchronize.name == 'app.celery_tasks.tasks.synchronize'
+
 '''
+def test_task_registered(celery_worker):
+    result = synchronize.delay()
+    print(result)
+    #assert False
+
+
 @c.pytest_mark_anyio
 async def test_synchronize_task(celery_app, celery_worker, get_test_session,
                           get_menu_service: c.MenuService,

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.api import main_router
 from app.core import AsyncSessionLocal, settings
-from app.tasks import init_repos
+from app.celery_tasks.utils import init_repos
 
 app = FastAPI(
     title=settings.app_title,

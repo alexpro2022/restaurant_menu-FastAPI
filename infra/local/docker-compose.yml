@@ -51,7 +51,7 @@ services:
       dockerfile: ./docker/dev.Dockerfile
     environment:
       - DOCKER_BUILDKIT=1      
-    command: bash -c "celery -A app.tasks worker -B --loglevel=info"
+    command: bash -c "celery -A app.celery_tasks.celery_app worker -B --loglevel=info"
     links:
       - rabbitmq
     depends_on:

@@ -1,6 +1,5 @@
 from typing import Any, AsyncGenerator, Generator
 
-# import faker
 import pytest
 import pytest_asyncio
 from fakeredis.aioredis import FakeRedis
@@ -15,7 +14,7 @@ from app.repositories import DishRepository, MenuRepository, SubmenuRepository  
 from app.repositories.base_db_repository import CRUDBaseRepository  # noqa
 from app.schemas import MenuIn, MenuOut  # noqa
 from app.services import DishService, MenuService, SubmenuService
-from app.tasks import FILE_PATH  # noqa
+from app.celery_tasks.utils import FILE_PATH  # noqa
 
 from .fixtures import data as d
 
