@@ -117,6 +117,7 @@
 [![Alembic](https://img.shields.io/badge/-Alembic-464646?logo=alembic)](https://alembic.sqlalchemy.org/en/latest/)
 [![aioredis](https://img.shields.io/badge/-aioredis-464646?logo=redis)](https://aioredis.readthedocs.io/en/latest/)
 [![celery](https://img.shields.io/badge/-Celery-464646?logo=celery)](https://docs.celeryq.dev/en/stable/)
+[![flower](https://img.shields.io/badge/-Flower-464646?logo=celery)](https://flower.readthedocs.io/en/latest/)
 [![rabbitmq](https://img.shields.io/badge/-RabbitMQ-464646?logo=rabbitmq)](https://www.rabbitmq.com/)
 [![Uvicorn](https://img.shields.io/badge/-Uvicorn-464646?logo=Uvicorn)](https://www.uvicorn.org/)
 [![docker_compose](https://img.shields.io/badge/-Docker%20Compose-464646?logo=docker)](https://docs.docker.com/compose/)
@@ -219,9 +220,11 @@ docker rmi restaurant_menu_test_scenario
 ```bash
 docker compose -f infra/local/docker-compose.yml --env-file .env up -d --build
 ```
-Проект будет развернут в docker-контейнерах по адресу http://127.0.0.1:8000.
+  Проект будет развернут в docker-контейнерах по адресу http://127.0.0.1:8000.
 
-Администрирование приложения может быть осуществлено через Swagger доступный по адресу http://127.0.0.1:8000/docs .
+  Администрирование приложения может быть осуществлено через Swagger доступный по адресу http://127.0.0.1:8000/docs .
+
+  Мониторинг фоновых задач Celery осуществляется по адресу: http://127.0.0.1:5555/tasks .
 
 2. Остановить docker и удалить контейнеры можно командой из корневой директории проекта:
 ```bash

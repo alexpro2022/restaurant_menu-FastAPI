@@ -72,10 +72,3 @@ async def update_(item_id: int, payload: schemas.MenuIn, menu_service: menu_serv
 async def delete_(item_id: int, menu_service: menu_service):
     await menu_service.delete(item_id)
     return u.delete_response('menu')
-
-
-'''
-@router.get('_synchronize', include_in_schema=False)
-async def synchronize(session: AsyncSession = Depends(get_async_session)):
-    return await task(session)
-'''
