@@ -26,8 +26,6 @@ services:
     depends_on:
       - db
       - redis
-    volumes:
-      - ../../admin:/app/admin
     env_file:
       - ../../.env
 
@@ -40,9 +38,9 @@ services:
 
   flower:
     image: mher/flower
-    #environment:  left for memory:)
+    #environment:
     #  - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-    ports:  # examples of good practices:)
+    ports:
       - ${FLOWER_PORT:-5555}:${FLOWER_PORT:?error}
     depends_on:
       - rabbitmq
@@ -62,6 +60,8 @@ services:
     depends_on:
       - rabbitmq
       - web
+    volumes:
+      - ../../admin:/app/admin      
     env_file:
       - ../../.env
 

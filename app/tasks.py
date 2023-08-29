@@ -1,12 +1,11 @@
 from datetime import datetime as dt
 from pathlib import Path
 import aioredis
-import httpx
 from celery import Celery
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 import asyncio
-from app.core import AsyncSessionLocal, db_flush, engine, get_aioredis, get_async_session, settings
+from app.core import AsyncSessionLocal, db_flush, engine, get_aioredis, settings
 from app.schemas import DishIn, MenuIn, SubmenuIn
 from app.services import DishService, MenuService, SubmenuService
 
@@ -85,8 +84,8 @@ async def init_repos(session: AsyncSession,
 async def task(session: AsyncSession,
                engine: AsyncEngine = engine,
                fname: Path = FILE_PATH) -> list | None:
-    #if not is_modified(fname):
-    #    return False
+    if not is_modified(fname):
+        return None
     return await init_repos(session)
 
 

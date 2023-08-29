@@ -1,12 +1,10 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import schemas
 from app.api.endpoints import utils as u
-from app.core import get_async_session, settings
+from app.core import settings
 from app.services import menu_service
-from app.tasks import task
 
 router = APIRouter(prefix=f'{settings.URL_PREFIX}menus', tags=['Menus'])
 
@@ -76,6 +74,8 @@ async def delete_(item_id: int, menu_service: menu_service):
     return u.delete_response('menu')
 
 
+'''
 @router.get('_synchronize', include_in_schema=False)
 async def synchronize(session: AsyncSession = Depends(get_async_session)):
     return await task(session)
+'''
