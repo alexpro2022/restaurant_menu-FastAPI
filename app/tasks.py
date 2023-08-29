@@ -85,43 +85,26 @@ async def init_repos(session: AsyncSession,
 async def task(session: AsyncSession,
                engine: AsyncEngine = engine,
                fname: Path = FILE_PATH) -> list | None:
-    if not is_modified(fname):
-        return None
+    #if not is_modified(fname):
+    #    return False
     return await init_repos(session)
 
 
+async def celery_task():
+    async with AsyncSessionLocal() as session:
+        return await task(session)
+
+
 celery = Celery('tasks', broker=settings.celery_broker_url)
-# 'amqp://guest:guest@rabbitmq:5672')
 celery.conf.beat_schedule = {
     f'synchronize-every-{TIME_INTERVAL}-seconds': {
         'task': 'app.tasks.synchronize',
         'schedule': TIME_INTERVAL,
-        # 'args': ()
     },
 }
-celery.conf.timezone = 'UTC'
-
-
-'''
-session = AsyncSessionLocal()
-print(type(session))
-assert isinstance(session, AsyncSession)
-
-
-@celery.task(name='celery_worker.synchronize')
-def celery_task(session=session):
-    return asyncio.run(task(session))
-'''
+celery.conf.timezone = 'Europe/Moscow'
 
 
 @celery.task
 def synchronize():
-    response = httpx.Client().get('http://web:8000/api/v1/menus_synchronize')
-    return response.json()
-
-
-'''
-@celery.on_after_configure.connect
-def setup_periodic_tasks(sender, **kwargs):
-    sender.add_periodic_task(TIME_INTERVAL, synchronize.s(), name=f'add every {TIME_INTERVAL}')
-'''
+    return asyncio.get_event_loop().run_until_complete(celery_task())
