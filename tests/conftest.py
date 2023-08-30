@@ -13,7 +13,7 @@ from app.models import Dish, Menu, Submenu  # noqa
 from app.repositories import DishRepository, MenuRepository, SubmenuRepository  # noqa
 from app.repositories.base_db_repository import CRUDBaseRepository  # noqa
 from app.schemas import MenuIn, MenuOut  # noqa
-from app.services import DishService, MenuService, SubmenuService
+from app.services import BaseService, DishService, MenuService, SubmenuService  # noqa
 from app.celery_tasks.utils import FILE_PATH  # noqa
 
 from .fixtures import data as d

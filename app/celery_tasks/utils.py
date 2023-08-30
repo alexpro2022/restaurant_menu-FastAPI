@@ -67,7 +67,7 @@ async def fill_repos(menus: list[dict],
 async def init_repos(session: AsyncSession,
                      fname: Path = FILE_PATH,
                      engine: AsyncEngine = engine,
-                     redis: aioredis.Redis = get_aioredis()) -> None:
+                     redis: aioredis.Redis = get_aioredis()) -> list:
     menus, _, _ = read_file(fname)
     if not menus:
         return None

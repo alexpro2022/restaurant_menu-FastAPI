@@ -3,6 +3,7 @@ import pytest
 from openpyxl import load_workbook
 
 from app.core import db_flush
+from app.celery_tasks.tasks import task
 from app.celery_tasks.utils import fill_repos, is_modified, read_file, init_repos
 
 from tests import conftest as c
@@ -14,9 +15,9 @@ from app.celery_tasks.tasks import synchronize
 FAKE_FILE_PATH = Path('tests/fixtures/Menu.xlsx')
 
 
-async def service_fills_cache_from_db(service) -> list:
+async def service_fills_cache_from_db(service: c.BaseService) -> list:
     assert await service.redis.get_all() is None
-    items_db = await service.get_all()
+    items_db = await service.get_all()  # the method should fill the cache
     assert items_db is not None
     items_cache = await service.redis.get_all()
     assert items_cache is not None
@@ -63,12 +64,6 @@ def test_read_file() -> None:
     assert menus == d.EXPECTED_MENU_FILE_CONTENT
 
 
-def test_is_modified() -> None:
-    assert not is_modified(FAKE_FILE_PATH)
-    write_file(FAKE_FILE_PATH)
-    assert is_modified(FAKE_FILE_PATH)
-
-
 @c.pytest_mark_anyio
 async def test_db_flush(dish: c.Response,
                         get_menu_repo: c.MenuRepository,
@@ -108,29 +103,21 @@ async def test_init_repos(dish: c.Response,
     await _check_repos(get_menu_service, get_submenu_service, get_dish_service)
 
 
+@c.pytest_mark_anyio
+async def test_task(get_test_session, get_test_redis) -> str:
+    msg = 'Меню не изменялось. Выход из фоновой задачи...'
+    assert await task(get_test_session, FAKE_FILE_PATH, c.engine) == msg
+    write_file(FAKE_FILE_PATH)
+    assert await task(get_test_session, FAKE_FILE_PATH, c.engine, get_test_redis) == d.EXPECTED_MENU_FILE_CONTENT
+
+
 def test_task_name():
     assert synchronize.name == 'app.celery_tasks.tasks.synchronize'
 
+
 '''
-def test_task_registered(celery_worker):
-    result = synchronize.delay()
-    print(result)
-    #assert False
-
-
-@c.pytest_mark_anyio
-async def test_synchronize_task(celery_app, celery_worker, get_test_session,
-                          get_menu_service: c.MenuService,
-                          get_submenu_service: c.SubmenuService,
-                          get_dish_service: c.DishService):
-    @celery_app.task
-    def _celery_task():
-        return celery_task(get_test_session)
-
-    celery_worker.reload()
-    # _sync.delay()  # .get(timeout=10)
-    result = _celery_task.delay()
-    # print(result)
-    #assert False
-    await _check_repos(get_menu_service, get_submenu_service, get_dish_service)
+def test_is_modified() -> None:
+    assert not is_modified(FAKE_FILE_PATH)
+    write_file(FAKE_FILE_PATH)
+    assert is_modified(FAKE_FILE_PATH)
 '''

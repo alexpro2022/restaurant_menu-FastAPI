@@ -1,5 +1,6 @@
 from typing import Annotated
 from fastapi import Depends
+from .base import BaseService
 from .services import MenuService, SubmenuService, DishService  # noqa
 
 menu_service = Annotated[MenuService, Depends()]
